@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Mime;
 using System.Text;
 using Xunit;
-using  ExifTagManager;
+
 
 namespace UavLogToolTest
 {
