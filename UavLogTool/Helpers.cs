@@ -64,7 +64,7 @@ namespace UavLogTool
                 {
                     flag = true;
                 }
-              
+
 
                 if (flag && actual == "1")
                 {
@@ -101,6 +101,47 @@ namespace UavLogTool
                 t.Milliseconds);
 
             return answer;
+        }
+
+        public static CoordinatesModel ConvertLatToDMS(double? latitud, double? longitud, double? altitud = null)
+        {
+            if (latitud.HasValue && longitud.HasValue)
+            {
+                //https://stackoverflow.com/a/27996566
+
+                string latitudDir = (latitud.Value >= 0 ? "N" : "S");
+                latitud = Math.Abs(latitud.Value);
+                double latMinPart = ((latitud.Value - Math.Truncate(latitud.Value) / 1) * 60);
+                double latSecPart = ((latMinPart - Math.Truncate(latMinPart) / 1) * 60);
+
+                string lonDir = (longitud.Value >= 0 ? "E" : "W");
+                longitud = Math.Abs(longitud.Value);
+                double lonMinPart = ((longitud.Value - Math.Truncate(longitud.Value) / 1) * 60);
+                double lonSecPart = ((lonMinPart - Math.Truncate(lonMinPart) / 1) * 60);
+
+                var latitudDeg = (int)Math.Truncate(latitud.Value);
+                var latitudMin = (int)Math.Truncate(latMinPart);
+                var latitudSec = Math.Round(latSecPart, 3);
+                var longitudDeg = (int)Math.Truncate(longitud.Value);
+                var longitudMin = (int)Math.Truncate(lonMinPart);
+                var longitudSec = Math.Round(lonSecPart, 3);
+
+
+                var coordinates = new CoordinatesModel()
+                {
+                    LatitudDirection = latitudDir,
+                    LatitudDegrees = latitudDeg,
+                    LatitudMinutes = latitudMin,
+                    LatitudSeconds = latitudSec,
+                    LongitudDirection = lonDir,
+                    LongitudDegrees = longitudDeg,
+                    LongitudMinutes = longitudMin,
+                    LongitudSeconds = longitudSec,
+                    Altitud = altitud ?? 0
+                };
+                return coordinates;
+            }
+            return null;
         }
     }
 }

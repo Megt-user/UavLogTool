@@ -9,12 +9,20 @@ namespace UavLogTool
 {
     public class ImageUtilities
     {
-
+        /// <summary>
+        /// Prepares a byte array that hold EXIF latitude/longitude data
+        /// </summary>
+        /// <param name="degrees">There are 360° of longitude (180° E ↔ 180° W) and 180° of latitude (90° N ↔ 90° S)</param>
+        /// <param name="minutes">Each degree can be broken into 60 minutes</param>
+        /// <param name="seconds">Each minute can be divided into 60 seconds (”). For finer accuracy, fractions of seconds given by a decimal point are used. Seconds unit multiplied by 1000. For example 33.775 seconds is passed as 33775. This gives adequate GPS precision</param>
+        /// <returns></returns>
         public static byte[] FloatToExifGps(int degrees, int minutes, int seconds)
         {
+            //https://stackoverflow.com/a/49982417
             var secBytes = BitConverter.GetBytes(seconds);
-            var secDivisor = BitConverter.GetBytes(100);
-            byte[] rv = { (byte)degrees, 0, 0, 0, 1, 0, 0, 0, (byte)minutes, 0, 0, 0, 1, 0, 0, 0, secBytes[0], secBytes[1], 0, 0, secDivisor[0], 0, 0, 0 };
+            var secDivisor = BitConverter.GetBytes(1000);
+            //Add secDivisor[1] to get the next byte https://stackoverflow.com/a/45142984
+            byte[] rv = { (byte)degrees, 0, 0, 0, 1, 0, 0, 0, (byte)minutes, 0, 0, 0, 1, 0, 0, 0, secBytes[0], secBytes[1], 0, 0, secDivisor[0], secDivisor[1], 0, 0 };
             return rv;
         }
 
@@ -50,9 +58,9 @@ namespace UavLogTool
                     {
 
                         string gpsLatitudeRef = BitConverter.ToChar(image.GetPropertyItem(1).Value, 0).ToString();
-                        string latitude = DecodeRational64u(image.GetPropertyItem(2));
+                        string latitude = DecodeRational64U(image.GetPropertyItem(2));
                         string gpsLongitudeRef = BitConverter.ToChar(image.GetPropertyItem(3).Value, 0).ToString();
-                        string longitude = DecodeRational64u(image.GetPropertyItem(4));
+                        string longitude = DecodeRational64U(image.GetPropertyItem(4));
                         Console.WriteLine("{0}\t{1} {2}, {3} {4}", file, gpsLatitudeRef, latitude, gpsLongitudeRef, longitude);
                     }
                 }
@@ -66,7 +74,7 @@ namespace UavLogTool
             }
         }
 
-        public static string DecodeRational64u(System.Drawing.Imaging.PropertyItem propertyItem)
+        public static string DecodeRational64U(System.Drawing.Imaging.PropertyItem propertyItem)
         {
             uint dN = BitConverter.ToUInt32(propertyItem.Value, 0);
             uint dD = BitConverter.ToUInt32(propertyItem.Value, 4);

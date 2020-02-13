@@ -45,7 +45,7 @@ namespace UavLogToolTest
             //}
             PropertyItem PropertyTagGpsLongitude = image1.GetPropertyItem(4);
             var valueString = System.Text.Encoding.Default.GetString(PropertyTagGpsLongitude.Value);
-            PropertyTagGpsLongitude.Value =ImageUtilities.FloatToExifGps(79, 48, 3377);
+            PropertyTagGpsLongitude.Value =ImageUtilities.FloatToExifGps(79, 48, 33775);
             image1.SetPropertyItem(PropertyTagGpsLongitude);
 
 
