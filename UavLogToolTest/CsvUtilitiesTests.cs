@@ -55,15 +55,21 @@ namespace UavLogToolTest
                     }
                 }
                 string csv = String.Join(",", uavLogs);
+                
                 //var uavlogsSort = uavLogs.OrderBy(l => l.DateTime).ToList();
-                var uavlogsSort2 = uavLogs.OrderBy(l=>l.DateTime).ToList();
+                
                 
 
                 var dictionarylog = Helpers.SplitVideosFromUavLog(uavLogs);
                 var video1LenghInMilliseconds = Helpers.GetVideoLenghtInSeconds(dictionarylog[2]);
                 var time = Helpers.ConvertMilisecondsToHMSmm(video1LenghInMilliseconds);
                 var photolog = Helpers.GetPositionScreemshotPostionFromVideo("03:56:22", dictionarylog[2]);
-
+                foreach (var videologs in dictionarylog)
+                {
+                    var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
+                    var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("yyMMdd")}_{videologs.Key}.csv";
+                    var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", filename), csvVideoLogs);
+                }
                 //var csvString = CsvUtilities.ToCsv(",", uavLogs);
                 //var saved = CsvUtilities.SaveCsvTofile(@"C:\Temp\WriteLines2.csv", csvString);
             }

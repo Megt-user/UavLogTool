@@ -90,7 +90,18 @@ namespace UavLogTool
                 var x = f.GetValue(o);
 
                 if (x != null)
-                    linie.Append(x.ToString());
+                {
+                    if (x is DateTime)
+                    {
+                        var dateTime =(DateTime) x;
+                        linie.Append(dateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
+                    }
+                    else
+                    {
+                        linie.Append(x.ToString());
+                    }
+
+                }
             }
 
             return linie.ToString();

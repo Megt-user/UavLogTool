@@ -37,21 +37,11 @@ namespace UavLogTool.Controllers
                 csvParser.SetDelimiters(new string[] { "," });
                 csvParser.HasFieldsEnclosedInQuotes = true;
 
-                //// Skip the row with the column names
-                //csvParser.ReadLine();
-
-
-                //var noko = File.ReadAllLines(path);
-
-
-
                 //Processing row
                 string[] headers = csvParser.ReadFields();
                 var djiHeaderDictionary = CsvUtilities.GetDjiHeaderDictionary(headers);
 
 
-                //foreach (string field in fields)
-                //{
                 var uavLogs = new List<UavLog>();
 
                 if (djiHeaderDictionary.Any())
@@ -68,13 +58,20 @@ namespace UavLogTool.Controllers
                         }
                     }
                 }
-                string csv = String.Join(",", uavLogs);
+                var csv = String.Join(",", uavLogs);
                 
                 //TODO not working
                 //var uavlogsSort = uavLogs.OrderBy(l => l.DateTime).ToList();
 
                 var dictionarylog = Helpers.SplitVideosFromUavLog(uavLogs);
                 var video1LenghInMilliseconds = Helpers.GetVideoLenghtInSeconds(dictionarylog.FirstOrDefault().Value);
+
+                foreach (var videologs in dictionarylog)
+                {
+                    var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
+                    var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("yyMMdd")}_{videologs.Key}.csv";
+                    var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", filename), csvVideoLogs);
+                }
             }
             return Ok();
         }

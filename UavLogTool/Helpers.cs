@@ -64,16 +64,7 @@ namespace UavLogTool
                 {
                     flag = true;
                 }
-                //else
-                //{
-                //    if (flag && actual == "1")
-                //    {
-                //        videoNumber++;
-                //        previus = actual;
-                //        flag = false;
-                //        logName = $"{logName}_{videoNumber}";
-                //    }
-                //}
+              
 
                 if (flag && actual == "1")
                 {
