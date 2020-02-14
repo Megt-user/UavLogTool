@@ -60,7 +60,15 @@ namespace UavLogTool
             //FieldInfo[] fields = t.GetFields();
             FieldInfo[] fields = t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
 
-            string header = String.Join(separator, fields.Select(f => f.Name).ToArray());
+            var headersName = fields.Select(h => h.Name).ToArray();
+
+            var headers = new List<string>();
+            foreach (var name in headersName)
+            {
+                var headerName = name.Substring(1, name.LastIndexOf(">", StringComparison.Ordinal)-1);
+                headers.Add(headerName);
+            }
+            string header = String.Join(separator, headers);
 
             StringBuilder csvdata = new StringBuilder();
             csvdata.AppendLine(header);

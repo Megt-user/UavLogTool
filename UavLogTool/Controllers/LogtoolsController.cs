@@ -16,8 +16,8 @@ namespace UavLogTool.Controllers
     {
 
         // POST: api/Logtools
-        [HttpPost("ConvertDjiCsv")]
-        public async Task<IActionResult> Post(IFormFile djiCsvLog)
+        [HttpPost("GetCsvVideoInfo")]
+        public async Task<IActionResult> GetCsvVideoLogInfo(IFormFile djiCsvLog)
         {
             long size = djiCsvLog.Length;
             string extension = Path.GetExtension(djiCsvLog.FileName).ToLower();
@@ -28,8 +28,11 @@ namespace UavLogTool.Controllers
                     return BadRequest("wrong file format");
                 }
             }
+            else
+            {
+                return BadRequest("CSV File Not Found");
 
-            var filePathTemp = Path.GetTempFileName();
+            }
 
             using (TextFieldParser csvParser = new TextFieldParser(djiCsvLog.OpenReadStream()))
             {
@@ -66,6 +69,7 @@ namespace UavLogTool.Controllers
                 var dictionarylog = Helpers.SplitVideosFromUavLog(uavLogs);
                 var video1LenghInMilliseconds = Helpers.GetVideoLenghtInSeconds(dictionarylog.FirstOrDefault().Value);
 
+
                 foreach (var videologs in dictionarylog)
                 {
                     var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
@@ -75,6 +79,57 @@ namespace UavLogTool.Controllers
             }
             return Ok();
         }
+
+        // POST: api/Logtools
+        [HttpPost("UpdateImageExfifFromCsv")]
+        public async Task<IActionResult> UpdateImageExfifFromCsv(IFormFile uavLogsCsv, IFormFile Image, string time)
+        {
+            long csvFilLength = uavLogsCsv.Length;
+            long imageFilLength = uavLogsCsv.Length;
+            string csvFileExtension = Path.GetExtension(uavLogsCsv.FileName).ToLower();
+            string imageFileExtension = Path.GetExtension(Image.FileName).ToLower();
+            if (csvFilLength > 0)
+            {
+                if (csvFileExtension != ".csv")
+                {
+                    return BadRequest("wrong CSV file format");
+                }
+            }
+            else
+            {
+                return BadRequest("CSV File Not Found");
+
+            }
+
+            if (imageFilLength > 0)
+            {
+                if (imageFileExtension != ".jpg")
+                {
+                    return BadRequest("wrong Image file format");
+                }
+            }
+            else
+            {
+                return BadRequest("Image File Not Found");
+            }
+
+            var filePathTemp = Path.GetTempFileName();
+
+            List<UavLog> uavLogs = null;
+
+            using (TextFieldParser csvParser = new TextFieldParser(uavLogsCsv.OpenReadStream()))
+            {
+                csvParser.CommentTokens = new string[] {"#"};
+                csvParser.SetDelimiters(new string[] {","});
+                csvParser.HasFieldsEnclosedInQuotes = true;
+
+            }
+
+
+            return Ok();
+
+        }
+
 
         // GET: api/Logtools
         [HttpGet]

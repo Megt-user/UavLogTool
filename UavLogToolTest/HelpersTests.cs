@@ -16,11 +16,6 @@ namespace UavLogToolTest
 
             double lat = 59.409581;
             double lon = -45.197069205344;
-
-           
-
-           
-
         }
     }
 }

@@ -121,7 +121,7 @@ namespace UavLogTool
 
                 var latitudDeg = (int)Math.Truncate(latitud.Value);
                 var latitudMin = (int)Math.Truncate(latMinPart);
-                var latitudSec = Math.Round(latSecPart, 3);
+                var latitudSec = Math.Round(latSecPart, 4);
                 var longitudDeg = (int)Math.Truncate(longitud.Value);
                 var longitudMin = (int)Math.Truncate(lonMinPart);
                 var longitudSec = Math.Round(lonSecPart, 3);
