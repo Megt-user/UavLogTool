@@ -65,15 +65,17 @@ namespace UavLogTool
             var headers = new List<string>();
             foreach (var name in headersName)
             {
-                var headerName = name.Substring(1, name.LastIndexOf(">", StringComparison.Ordinal)-1);
-                headers.Add(headerName);
+                if (name.Contains(">"))
+                {
+                    var headerName = name.Substring(1, name.LastIndexOf(">", StringComparison.Ordinal) - 1);
+                    headers.Add(headerName); 
+                }
             }
             string header = String.Join(separator, headers);
 
             StringBuilder csvdata = new StringBuilder();
             csvdata.AppendLine(header);
-            List<string> lines = new List<string>();
-            lines.Add(header);
+            var lines = new List<string> {header};
             foreach (var o in objectlist)
             {
                 var objectLine = ToCsvFields(separator, fields, o);

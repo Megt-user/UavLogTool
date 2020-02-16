@@ -1,9 +1,8 @@
-using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualBasic.FileIO;
 using UavLogTool;
 using UavLogTool.Models;
 using Xunit;
@@ -55,10 +54,10 @@ namespace UavLogToolTest
                     }
                 }
                 string csv = String.Join(",", uavLogs);
+
+               
                 
-                //var uavlogsSort = uavLogs.OrderBy(l => l.DateTime).ToList();
-                
-                
+               
 
                 var dictionarylog = Helpers.SplitVideosFromUavLog(uavLogs);
                 var video1LenghInMilliseconds = Helpers.GetVideoLenghtInSeconds(dictionarylog[2]);

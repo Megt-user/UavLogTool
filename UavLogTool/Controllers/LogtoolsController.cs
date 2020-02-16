@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic.FileIO;
 using UavLogTool.Models;
 
+
+
 namespace UavLogTool.Controllers
 {
     [Route("api/[controller]")]
@@ -82,12 +84,12 @@ namespace UavLogTool.Controllers
 
         // POST: api/Logtools
         [HttpPost("UpdateImageExfifFromCsv")]
-        public async Task<IActionResult> UpdateImageExfifFromCsv(IFormFile uavLogsCsv, IFormFile Image, string time)
+        public async Task<IActionResult> UpdateImageExfifFromCsv(IFormFile uavLogsCsv, IFormFile image, string time)
         {
             long csvFilLength = uavLogsCsv.Length;
             long imageFilLength = uavLogsCsv.Length;
             string csvFileExtension = Path.GetExtension(uavLogsCsv.FileName).ToLower();
-            string imageFileExtension = Path.GetExtension(Image.FileName).ToLower();
+            string imageFileExtension = Path.GetExtension(image.FileName).ToLower();
             if (csvFilLength > 0)
             {
                 if (csvFileExtension != ".csv")
@@ -115,7 +117,7 @@ namespace UavLogTool.Controllers
 
             var filePathTemp = Path.GetTempFileName();
 
-            List<UavLog> uavLogs = null;
+            List<UavLog> uavLogs = new List<UavLog>();
 
             using (TextFieldParser csvParser = new TextFieldParser(uavLogsCsv.OpenReadStream()))
             {
@@ -124,7 +126,8 @@ namespace UavLogTool.Controllers
                 csvParser.HasFieldsEnclosedInQuotes = true;
 
             }
-
+            //using (TextReader reader = File.OpenText(@"/Users/bart/Downloads/Work.csv"))
+           
 
             return Ok();
 
