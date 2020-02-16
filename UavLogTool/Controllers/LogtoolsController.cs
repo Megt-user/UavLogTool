@@ -67,7 +67,7 @@ namespace UavLogTool.Controllers
                     }
                 }
                 var csv = String.Join(",", uavLogs);
-                
+
                 //TODO not working
                 //var uavlogsSort = uavLogs.OrderBy(l => l.DateTime).ToList();
 
@@ -122,25 +122,9 @@ namespace UavLogTool.Controllers
 
             List<UavLog> uavLogs = new List<UavLog>();
 
-            using (TextFieldParser csvParser = new TextFieldParser(uavLogsCsv.OpenReadStream()))
-            {
-                csvParser.CommentTokens = new string[] {"#"};
-                csvParser.SetDelimiters(new string[] {","});
-                csvParser.HasFieldsEnclosedInQuotes = true;
-
-            }
-            //using (TextReader reader = File.OpenText(@"/Users/bart/Downloads/Work.csv"))
             using (TextReader reader = new StreamReader(uavLogsCsv.OpenReadStream()))
             {
-                CsvConfiguration csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture);
-                CsvReader csv = new CsvReader(reader, csvConfiguration);
-                csv.Configuration.Delimiter = ",";
-                csv.Configuration.MissingFieldFound = null;
-                while (csv.Read())
-                {
-                    UavLog Record = csv.GetRecord<UavLog>();
-                    uavLogs.Add(Record);
-                }
+                uavLogs = CsvUtilities.GetUavLosFromCsv(reader);
             }
 
             return Ok();
@@ -162,7 +146,7 @@ namespace UavLogTool.Controllers
             return "value";
         }
 
-       
+
 
         // PUT: api/Logtools/5
         [HttpPut("{id}")]
