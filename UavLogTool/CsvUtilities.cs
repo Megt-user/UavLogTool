@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using CsvHelper;
+using CsvHelper.Configuration;
 using UavLogTool.Models;
 
 namespace UavLogTool
@@ -30,6 +33,21 @@ namespace UavLogTool
             return headerDictionary;
         }
 
+        public static List<UavLog> GetUavLosFromCsv(TextReader csvTextReader)
+        {
+            var uavLogs = new List<UavLog>();
+            CsvConfiguration csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture);
+            CsvReader csv = new CsvReader(csvTextReader, csvConfiguration);
+            csv.Configuration.Delimiter = ",";
+            csv.Configuration.MissingFieldFound = null;
+            while (csv.Read())
+            {
+                UavLog Record = csv.GetRecord<UavLog>();
+                uavLogs.Add(Record);
+            }
+
+            return uavLogs;
+        }
         public static UavLog GetUavLog(string[] fields, Dictionary<string, int> headers)
         {
             var uavLog = new UavLog();
