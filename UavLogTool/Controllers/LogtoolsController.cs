@@ -39,6 +39,7 @@ namespace UavLogTool.Controllers
 
             }
 
+            List<VideoInfoModel> videoInfoModels;
             using (TextFieldParser csvParser = new TextFieldParser(djiCsvLog.OpenReadStream()))
             {
                 csvParser.CommentTokens = new string[] { "#" };
@@ -72,17 +73,28 @@ namespace UavLogTool.Controllers
                 //var uavlogsSort = uavLogs.OrderBy(l => l.DateTime).ToList();
 
                 var dictionarylog = Helpers.SplitVideosFromUavLog(uavLogs);
-                var video1LenghInMilliseconds = Helpers.GetVideoLenghtInSeconds(dictionarylog.FirstOrDefault().Value);
+                var video1LenghInMilliseconds = Helpers.GetVideoLenghtInMilliseconds(dictionarylog.FirstOrDefault().Value);
 
 
                 foreach (var videologs in dictionarylog)
                 {
                     var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
-                    var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("yyMMdd")}_{videologs.Key}.csv";
+
+
+                    var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("yyMMdd_HH-mm-ss")}_{videologs.Key}.csv";
                     var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", filename), csvVideoLogs);
                 }
+                videoInfoModels = Helpers.GetVideoInfoModels(dictionarylog);
             }
-            return Ok();
+
+            if (videoInfoModels != null)
+            {
+                return Ok(videoInfoModels);
+            }
+            else
+            {
+                return BadRequest("Something Went wrong");
+            }
         }
 
         // POST: api/Logtools

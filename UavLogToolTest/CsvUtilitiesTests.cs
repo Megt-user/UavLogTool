@@ -60,7 +60,7 @@ namespace UavLogToolTest
                
 
                 var dictionarylog = Helpers.SplitVideosFromUavLog(uavLogs);
-                var video1LenghInMilliseconds = Helpers.GetVideoLenghtInSeconds(dictionarylog[2]);
+                var video1LenghInMilliseconds = Helpers.GetVideoLenghtInMilliseconds(dictionarylog[2]);
                 var time = Helpers.ConvertMilisecondsToHMSmm(video1LenghInMilliseconds);
                 var photolog = Helpers.GetPositionScreemshotPostionFromVideo("03:56:22", dictionarylog[2]);
                 foreach (var videologs in dictionarylog)

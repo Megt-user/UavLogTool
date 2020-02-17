@@ -18,7 +18,7 @@ namespace UavLogTool
             {
                 try
                 {
-                    var videoLenght = GetVideoLenghtInSeconds(uavLogs);
+                    var videoLenght = GetVideoLenghtInMilliseconds(uavLogs);
                     if (imageTimeStamp.TotalMilliseconds < videoLenght)
                     {
                         var firstVideoLog = uavLogs.Select(l => l.DateTime).Min();
@@ -82,11 +82,13 @@ namespace UavLogTool
             return videoLogs;
         }
 
-        public static double GetVideoLenghtInSeconds(List<UavLog> uavLogs)
+        public static double GetVideoLenghtInMilliseconds(List<UavLog> uavLogs)
         {
 
             var dateTimeFirst = uavLogs.First().DateTime;
+            //var dateTimeFirst = uavLogs.Select(log => log.DateTime).Min();
             var dateTimeLast = uavLogs.Last().DateTime;
+            //var dateTimeLast =  uavLogs.Select(log=>log.DateTime).Max();
             var videoLenght = (dateTimeLast - dateTimeFirst).TotalMilliseconds;
             return videoLenght;
         }
@@ -142,6 +144,30 @@ namespace UavLogTool
                 return coordinates;
             }
             return null;
+        }
+
+        public static List<VideoInfoModel> GetVideoInfoModels(Dictionary<int, List<UavLog>> videosLogs)
+        {
+            var videoInfoModels = new List<VideoInfoModel>();
+
+            foreach (var videosLog in videosLogs)
+            {
+                var videoDuration = GetVideoLenghtInMilliseconds(videosLog.Value);
+                var time = ConvertMilisecondsToHMSmm(videoDuration);
+                var firstVideoLog = videosLog.Value.First();
+                var filename = $"{videosLog.Value.FirstOrDefault().DateTime.ToString("yyMMdd_HH-mm-ss")}_{videosLog.Key}.csv";
+
+                videoInfoModels.Add(new VideoInfoModel()
+                {
+                    DateTime = firstVideoLog.DateTime,
+                    Duration = time,
+                    StartLatitud = firstVideoLog.UavLatititud,
+                    StartLongitud = firstVideoLog.UavLongitud,
+                    FileName = filename
+                });
+            }
+
+            return videoInfoModels;
         }
     }
 }
