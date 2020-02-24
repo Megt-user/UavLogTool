@@ -81,7 +81,7 @@ namespace UavLogTool.Controllers
                     var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
 
 
-                    var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("yyMMdd_HH-mm-ss")}_{videologs.Key}.csv";
+                    var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("_yyyy-MM-dd_HH-mm-ss")}_{videologs.Key}.csv";
                     var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", filename), csvVideoLogs);
                 }
                 videoInfoModels = Helpers.GetVideoInfoModels(dictionarylog);
@@ -89,12 +89,14 @@ namespace UavLogTool.Controllers
 
             if (videoInfoModels != null)
             {
+                var csvVideoInfoModels = CsvUtilities.ToCsv(",", videoInfoModels);
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(djiCsvLog.FileName);
+                var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", $"{fileNameWithoutExtension}_resume.csv"), csvVideoInfoModels);
                 return Ok(videoInfoModels);
             }
-            else
-            {
-                return BadRequest("Something Went wrong");
-            }
+
+            return BadRequest("Something Went wrong");
+
         }
 
         // POST: api/Logtools
@@ -173,32 +175,32 @@ namespace UavLogTool.Controllers
             return Ok(photolog);
         }
 
-        // GET: api/Logtools
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
+        //// GET: api/Logtools
+        //[HttpGet]
+        //public IEnumerable<string> Get()
+        //{
+        //    return new string[] { "value1", "value2" };
+        //}
 
-        // GET: api/Logtools/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
-        {
-            return "value";
-        }
+        //// GET: api/Logtools/5
+        //[HttpGet("{id}", Name = "Get")]
+        //public string Get(int id)
+        //{
+        //    return "value";
+        //}
 
 
 
-        // PUT: api/Logtools/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+        //// PUT: api/Logtools/5
+        //[HttpPut("{id}")]
+        //public void Put(int id, [FromBody] string value)
+        //{
+        //}
 
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
+        //// DELETE: api/ApiWithActions/5
+        //[HttpDelete("{id}")]
+        //public void Delete(int id)
+        //{
+        //}
     }
 }

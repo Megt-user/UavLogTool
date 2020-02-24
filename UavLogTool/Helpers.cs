@@ -52,31 +52,33 @@ namespace UavLogTool
             var videoLogs = new Dictionary<int, List<UavLog>>();
 
             var uavlogsTemp = new List<UavLog>();
-            string previus = "1";
-            bool flag = false;
             int videoNumber = 1;
-            string logName = "VideoRecordTime";
 
+            int actualInt;
+
+            var previous = uavLogs.FirstOrDefault().VideoRecordTime;
             foreach (var log in uavLogs)
             {
+
                 var actual = log.VideoRecordTime;
-                if (previus == "1" && previus != actual && !flag)
-                {
-                    flag = true;
-                }
 
-
-                if (flag && actual == "1")
+                var previousInt = int.Parse(previous);
+                actualInt = int.Parse(actual);
+                if (previous != actual)
                 {
-                    videoLogs.Add(videoNumber, uavlogsTemp);
-                    videoNumber++;
-                    previus = actual;
-                    flag = false;
-                    uavlogsTemp = new List<UavLog>();
+                    if (previousInt > actualInt)
+                    {
+                        videoLogs.Add(videoNumber, uavlogsTemp);
+                        videoNumber++;
+                        uavlogsTemp = new List<UavLog>();
+                    }
+                    previous = actual;
+
                 }
                 log.VideoNumber = videoNumber;
                 uavlogsTemp.Add(log);
             }
+
             videoLogs.Add(videoNumber, uavlogsTemp);
 
             return videoLogs;
@@ -155,7 +157,8 @@ namespace UavLogTool
                 var videoDuration = GetVideoLenghtInMilliseconds(videosLog.Value);
                 var time = ConvertMilisecondsToHMSmm(videoDuration);
                 var firstVideoLog = videosLog.Value.First();
-                var filename = $"{videosLog.Value.FirstOrDefault().DateTime.ToString("yyMMdd_HH-mm-ss")}_{videosLog.Key}.csv";
+                var lastVideoLog = videosLog.Value.Last();
+                var filename = $"{videosLog.Value.FirstOrDefault()?.DateTime.ToString("_yyyy_MM_dd_HH-mm-ss")}_{videosLog.Key}.csv";
 
                 videoInfoModels.Add(new VideoInfoModel()
                 {
@@ -163,6 +166,8 @@ namespace UavLogTool
                     Duration = time,
                     StartLatitud = firstVideoLog.UavLatititud,
                     StartLongitud = firstVideoLog.UavLongitud,
+                    EndLatitud = lastVideoLog.UavLatititud,
+                    EndLongitud = lastVideoLog.UavLongitud,
                     FileName = filename
                 });
             }

@@ -11,6 +11,8 @@ namespace UavLogTool.Models
         public String Duration { get; set; }
         public string StartLatitud { get; set; }
         public string StartLongitud { get; set; }
+        public string EndLatitud { get; set; }
+        public string EndLongitud { get; set; }
         public string FileName { get; set; }
 
     }

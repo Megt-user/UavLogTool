@@ -71,10 +71,10 @@ namespace UavLogTool
         }
 
 
-        //public static string ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)
-        public static string[] ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)
+       //public static string ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)
+        public static string[] ToCsv(string separator, IEnumerable<object> objectlist)
         {
-            Type t = typeof(UavLog);
+            Type t = objectlist.FirstOrDefault().GetType();
             //FieldInfo[] fields = t.GetFields();
             FieldInfo[] fields = t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
 
@@ -152,6 +152,27 @@ namespace UavLogTool
 
                 return false;
             }
+        }
+
+        public static void ConvertCalssToCsv(VideoInfoModel[] objects, string path)
+        {
+            using (TextWriter writer = new StreamWriter(path))
+            using (var csv = new CsvWriter(writer,CultureInfo.InvariantCulture))
+            {
+                foreach (var value in objects)
+                {
+                    csv.WriteRecord(value);
+                }
+
+            }
+            //var csv = new CsvWriter(writer);
+
+            //csv.Configuration.Encoding = Encoding.UTF8;
+            //foreach (var value in valuess)
+            //{
+            //    csv.WriteRecord(value);
+            //}
+            //writer.Close();
         }
     }
 }

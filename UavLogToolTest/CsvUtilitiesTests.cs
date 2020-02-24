@@ -14,7 +14,7 @@ namespace UavLogToolTest
         [Fact]
         public void Test1()
         {
-            var path = @"Data\DJIFlightRecord_2020-01-22_[13-25-55]-TxtLogToCsv.csv"; // "," dateTime: "2020/01/22 12:25:55.734"
+            var path = @"Data\DJIFlightRecord_2020-01-22_[14-00-01]-TxtLogToCsv.csv"; // "," dateTime: "2020/01/22 12:25:55.734"
             //var path = @"Data\DJIFlightRecord_2020-01-22_13-25-55-verbose.csv"; // ";"  dateTime:"28:52.3"
             using (TextFieldParser csvParser = new TextFieldParser(path))
             {
@@ -55,20 +55,31 @@ namespace UavLogToolTest
                 }
                 string csv = String.Join(",", uavLogs);
 
-               
-                
-               
+
+
+
 
                 var dictionarylog = Helpers.SplitVideosFromUavLog(uavLogs);
                 var video1LenghInMilliseconds = Helpers.GetVideoLenghtInMilliseconds(dictionarylog[2]);
                 var time = Helpers.ConvertMilisecondsToHMSmm(video1LenghInMilliseconds);
                 var photolog = Helpers.GetPositionScreemshotPostionFromVideo("03:56:22", dictionarylog[2]);
-                foreach (var videologs in dictionarylog)
-                {
-                    var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
-                    var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("yyMMdd")}_{videologs.Key}.csv";
-                    var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", filename), csvVideoLogs);
-                }
+                string filePath = null;
+                //foreach (var videologs in dictionarylog)
+                //{
+                //    var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
+                //    var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("yyMMdd")}_{videologs.Key}.csv";
+                //    filePath = Path.Combine(@"C:\Temp\", filename);
+                //    var saved = CsvUtilities.SaveCsvTofile(filePath, csvVideoLogs);
+                //}
+
+
+                filePath = Path.Combine(@"C:\Temp\", "noko.csv");
+                var videoInfoModels = Helpers.GetVideoInfoModels(dictionarylog);
+                var csvVideoLogs = CsvUtilities.ToCsv(",", videoInfoModels.ToArray());
+                var saved = CsvUtilities.SaveCsvTofile(filePath, csvVideoLogs);
+
+
+                CsvUtilities.ConvertCalssToCsv(videoInfoModels.ToArray(), filePath);
                 //var csvString = CsvUtilities.ToCsv(",", uavLogs);
                 //var saved = CsvUtilities.SaveCsvTofile(@"C:\Temp\WriteLines2.csv", csvString);
             }
