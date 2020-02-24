@@ -30,26 +30,58 @@ namespace UavLogToolTest
             //    var idInt = item.Id;
             //    var hex = idInt.ToString("x8");
             //    var hex8 = idInt.ToString("X");
-               
+
             //    if (hex.Contains("0001"))
             //    {
-                    
+
             //    } 
             //    if (hex.Contains("0002"))
             //    {
-                    
+
             //    } if (hex.Contains("0002"))
             //    {
-                    
+
             //    }
             //}
-            PropertyItem PropertyTagGpsLongitude = image1.GetPropertyItem(4);
-            var valueString = System.Text.Encoding.Default.GetString(PropertyTagGpsLongitude.Value);
-            PropertyTagGpsLongitude.Value =ImageUtilities.FloatToExifGps(79, 48, 33775);
-            image1.SetPropertyItem(PropertyTagGpsLongitude);
+            PropertyItem propertyTagGpsLongitude = image1.GetPropertyItem(4);
+            PropertyItem propertyTagGpsLongitudeRef = image1.GetPropertyItem(3);
+            var valueStringRef = System.Text.Encoding.Default.GetString(propertyTagGpsLongitudeRef.Value);
+
+            PropertyItem propertyTagGpsLaitude = image1.GetPropertyItem(6);
+            var valueString = System.Text.Encoding.Default.GetString(propertyTagGpsLongitude.Value);
+            propertyTagGpsLongitude.Value =ImageUtilities.FloatToExifGps(79, 48, 33775);
+            image1.SetPropertyItem(propertyTagGpsLongitude);
 
 
             image1.Save(@"C:\Temp\image_Test.JPG");
+        }
+
+        [Fact]
+        public void testCreateImageProperty()
+        {
+            //https://social.msdn.microsoft.com/Forums/vstudio/en-US/71d8de37-f52d-4faa-887a-793f8041110a/managing-general-exif-info-with-imagesetpropertyitem?forum=netfxbcl
+            var path = @"Data\test.JPG";
+
+            ImageUtilities.ExtractLocation(path);
+
+            Image image1 = Image.FromFile(path);
+            PropertyItem propertyTagGpsLongitude = image1.PropertyItems[4];
+            PropertyItem propertyTagGpsLongitudeRef = image1.PropertyItems[3];
+            PropertyItem propertyTagGpsLatudeRef = image1.PropertyItems[5];
+            PropertyItem propertyTagGpsLatude = image1.PropertyItems[6];
+
+            var valueString = System.Text.Encoding.Default.GetString(propertyTagGpsLongitude.Value);
+            var longitudValue=propertyTagGpsLongitude.Value = ImageUtilities.FloatToExifGps(79, 48, 33775);
+            var latitudValue=propertyTagGpsLongitude.Value = ImageUtilities.FloatToExifGps(5, 48, 33775);
+            ImageUtilities.SetProperty(ref propertyTagGpsLongitude, 4, "5", longitudValue);
+            ImageUtilities.SetProperty(ref propertyTagGpsLongitudeRef, 4, "2", "N");
+            ImageUtilities.SetProperty(ref propertyTagGpsLatude, 4, "5", latitudValue);
+            ImageUtilities.SetProperty(ref propertyTagGpsLatudeRef, 3, "2", "O");
+            image1.SetPropertyItem(propertyTagGpsLongitude);
+
+
+            image1.Save(@"C:\Temp\image_wthoutGPSData_Test.JPG");
+
         }
     }
 }

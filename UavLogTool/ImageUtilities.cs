@@ -94,5 +94,34 @@ namespace UavLogTool
             if (sec == 0) return string.Format("{0}° {1:0.#######}'", deg, min);
             else return string.Format("{0}° {1:0}' {2:0.#######}\"", deg, min, sec);
         }
+
+        //My SetProperty code... (for ASCII property items only!)
+        //Exif 2.2 requires that ASCII property items terminate with a null (0x00).
+        public static void SetProperty(ref System.Drawing.Imaging.PropertyItem prop, int iId, string typeString, byte[] value)
+        {
+            //int iLen = sTxt.Length + 1;
+            //byte[] bTxt = new Byte[iLen];
+            //for (int i = 0; i < iLen - 1; i++)
+            //    bTxt[i] = (byte)sTxt[i];
+            //bTxt[iLen - 1] = 0x00;
+            //prop.Id = iId;
+            short type = short.Parse(typeString);
+            prop.Type = type;
+            prop.Value = value;
+            prop.Len = value.Length;
+        } 
+        public static void SetProperty(ref System.Drawing.Imaging.PropertyItem prop, int iId, string typeString, string sTxt)
+        {
+            int iLen = sTxt.Length + 1;
+            byte[] bTxt = new Byte[iLen];
+            for (int i = 0; i < iLen - 1; i++)
+                bTxt[i] = (byte)sTxt[i];
+            bTxt[iLen - 1] = 0x00;
+            prop.Id = iId;
+            short type = short.Parse(typeString);
+            prop.Type = type;
+            prop.Value = bTxt;
+            prop.Len = iLen;
+        }
     }
 }

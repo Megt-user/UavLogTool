@@ -139,10 +139,39 @@ namespace UavLogTool.Controllers
                 uavLogs = CsvUtilities.GetUavLosFromCsv(reader);
             }
 
+
             return Ok();
 
         }
+        // POST: api/Logtools
+        [HttpPost("GetCsvVideoGpS")]
+        public async Task<IActionResult> GetCsvVideoPosition(IFormFile uavLogsCsv, string time)
+        {
+            long csvFilLength = uavLogsCsv.Length;
+            long imageFilLength = uavLogsCsv.Length;
+            string csvFileExtension = Path.GetExtension(uavLogsCsv.FileName).ToLower();
+            if (csvFilLength > 0)
+            {
+                if (csvFileExtension != ".csv")
+                {
+                    return BadRequest("wrong CSV file format");
+                }
+            }
+            else
+            {
+                return BadRequest("CSV File Not Found");
 
+            }
+            List<UavLog> uavLogs = new List<UavLog>();
+
+            using (TextReader reader = new StreamReader(uavLogsCsv.OpenReadStream()))
+            {
+                uavLogs = CsvUtilities.GetUavLosFromCsv(reader);
+            }
+            var photolog = Helpers.GetPositionScreemshotPostionFromVideo(time, uavLogs);//"03:56:22"
+
+            return Ok(photolog);
+        }
 
         // GET: api/Logtools
         [HttpGet]
