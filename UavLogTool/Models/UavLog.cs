@@ -23,7 +23,6 @@ namespace UavLogTool.Models
                 {"DateTime","CUSTOM.updateTime" },
                 {"VideoRecordTime","CAMERA_INFO.videoRecordTime" }
             };
-
             return djiMappingModel;
         }
     }

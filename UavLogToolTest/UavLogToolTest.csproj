@@ -24,6 +24,9 @@
     <None Update="Data\DJIFlightRecord_2020-01-22_[13-25-55]-TxtLogToCsv.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Data\DJIFlightRecord_2020-01-22_[14-00-01]-TxtLogToCsv.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

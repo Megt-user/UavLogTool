@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic.FileIO;
 using UavLogTool.Models;
+
+
 
 namespace UavLogTool.Controllers
 {
@@ -16,8 +21,8 @@ namespace UavLogTool.Controllers
     {
 
         // POST: api/Logtools
-        [HttpPost("ConvertDjiCsv")]
-        public async Task<IActionResult> Post(IFormFile djiCsvLog)
+        [HttpPost("GetCsvVideoInfo")]
+        public async Task<IActionResult> GetCsvVideoLogInfo(IFormFile djiCsvLog)
         {
             long size = djiCsvLog.Length;
             string extension = Path.GetExtension(djiCsvLog.FileName).ToLower();
@@ -28,9 +33,13 @@ namespace UavLogTool.Controllers
                     return BadRequest("wrong file format");
                 }
             }
+            else
+            {
+                return BadRequest("CSV File Not Found");
 
-            var filePathTemp = Path.GetTempFileName();
+            }
 
+            List<VideoInfoModel> videoInfoModels;
             using (TextFieldParser csvParser = new TextFieldParser(djiCsvLog.OpenReadStream()))
             {
                 csvParser.CommentTokens = new string[] { "#" };
@@ -59,49 +68,139 @@ namespace UavLogTool.Controllers
                     }
                 }
                 var csv = String.Join(",", uavLogs);
-                
+
                 //TODO not working
                 //var uavlogsSort = uavLogs.OrderBy(l => l.DateTime).ToList();
 
                 var dictionarylog = Helpers.SplitVideosFromUavLog(uavLogs);
-                var video1LenghInMilliseconds = Helpers.GetVideoLenghtInSeconds(dictionarylog.FirstOrDefault().Value);
+                var video1LenghInMilliseconds = Helpers.GetVideoLenghtInMilliseconds(dictionarylog.FirstOrDefault().Value);
+
 
                 foreach (var videologs in dictionarylog)
                 {
                     var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
-                    var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("yyMMdd")}_{videologs.Key}.csv";
+
+
+                    var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("_yyyy-MM-dd_HH-mm-ss")}_{videologs.Key}.csv";
                     var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", filename), csvVideoLogs);
                 }
+                videoInfoModels = Helpers.GetVideoInfoModels(dictionarylog);
             }
+
+            if (videoInfoModels != null)
+            {
+                var csvVideoInfoModels = CsvUtilities.ToCsv(",", videoInfoModels);
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(djiCsvLog.FileName);
+                var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", $"{fileNameWithoutExtension}_resume.csv"), csvVideoInfoModels);
+                return Ok(videoInfoModels);
+            }
+
+            return BadRequest("Something Went wrong");
+
+        }
+
+        // POST: api/Logtools
+        [HttpPost("UpdateImageExfifFromCsv")]
+        public async Task<IActionResult> UpdateImageExfifFromCsv(IFormFile uavLogsCsv, IFormFile image, string time)
+        {
+            long csvFilLength = uavLogsCsv.Length;
+            long imageFilLength = uavLogsCsv.Length;
+            string csvFileExtension = Path.GetExtension(uavLogsCsv.FileName).ToLower();
+            string imageFileExtension = Path.GetExtension(image.FileName).ToLower();
+            if (csvFilLength > 0)
+            {
+                if (csvFileExtension != ".csv")
+                {
+                    return BadRequest("wrong CSV file format");
+                }
+            }
+            else
+            {
+                return BadRequest("CSV File Not Found");
+
+            }
+
+            if (imageFilLength > 0)
+            {
+                if (imageFileExtension != ".jpg")
+                {
+                    return BadRequest("wrong Image file format");
+                }
+            }
+            else
+            {
+                return BadRequest("Image File Not Found");
+            }
+
+            var filePathTemp = Path.GetTempFileName();
+
+            List<UavLog> uavLogs = new List<UavLog>();
+
+            using (TextReader reader = new StreamReader(uavLogsCsv.OpenReadStream()))
+            {
+                uavLogs = CsvUtilities.GetUavLosFromCsv(reader);
+            }
+
+
             return Ok();
-        }
 
-        // GET: api/Logtools
-        [HttpGet]
-        public IEnumerable<string> Get()
+        }
+        // POST: api/Logtools
+        [HttpPost("GetCsvVideoGpS")]
+        public async Task<IActionResult> GetCsvVideoPosition(IFormFile uavLogsCsv, string time)
         {
-            return new string[] { "value1", "value2" };
+            long csvFilLength = uavLogsCsv.Length;
+            long imageFilLength = uavLogsCsv.Length;
+            string csvFileExtension = Path.GetExtension(uavLogsCsv.FileName).ToLower();
+            if (csvFilLength > 0)
+            {
+                if (csvFileExtension != ".csv")
+                {
+                    return BadRequest("wrong CSV file format");
+                }
+            }
+            else
+            {
+                return BadRequest("CSV File Not Found");
+
+            }
+            List<UavLog> uavLogs = new List<UavLog>();
+
+            using (TextReader reader = new StreamReader(uavLogsCsv.OpenReadStream()))
+            {
+                uavLogs = CsvUtilities.GetUavLosFromCsv(reader);
+            }
+            var photolog = Helpers.GetPositionScreemshotPostionFromVideo(time, uavLogs);//"03:56:22"
+
+            return Ok(photolog);
         }
 
-        // GET: api/Logtools/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
-        {
-            return "value";
-        }
+        //// GET: api/Logtools
+        //[HttpGet]
+        //public IEnumerable<string> Get()
+        //{
+        //    return new string[] { "value1", "value2" };
+        //}
 
-       
+        //// GET: api/Logtools/5
+        //[HttpGet("{id}", Name = "Get")]
+        //public string Get(int id)
+        //{
+        //    return "value";
+        //}
 
-        // PUT: api/Logtools/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
 
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
+
+        //// PUT: api/Logtools/5
+        //[HttpPut("{id}")]
+        //public void Put(int id, [FromBody] string value)
+        //{
+        //}
+
+        //// DELETE: api/ApiWithActions/5
+        //[HttpDelete("{id}")]
+        //public void Delete(int id)
+        //{
+        //}
     }
 }

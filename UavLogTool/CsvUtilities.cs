@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
+using CsvHelper;
+using CsvHelper.Configuration;
 using UavLogTool.Models;
 
 namespace UavLogTool
@@ -30,6 +32,21 @@ namespace UavLogTool
             return headerDictionary;
         }
 
+        public static List<UavLog> GetUavLosFromCsv(TextReader csvTextReader)
+        {
+            var uavLogs = new List<UavLog>();
+            CsvConfiguration csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture);
+            CsvReader csv = new CsvReader(csvTextReader, csvConfiguration);
+            csv.Configuration.Delimiter = ",";
+            csv.Configuration.MissingFieldFound = null;
+            while (csv.Read())
+            {
+                UavLog Record = csv.GetRecord<UavLog>();
+                uavLogs.Add(Record);
+            }
+
+            return uavLogs;
+        }
         public static UavLog GetUavLog(string[] fields, Dictionary<string, int> headers)
         {
             var uavLog = new UavLog();
@@ -53,19 +70,29 @@ namespace UavLogTool
         }
 
 
-        //public static string ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)
-        public static string[] ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)
+       //public static string ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)
+        public static string[] ToCsv(string separator, IEnumerable<object> objectlist)
         {
-            Type t = typeof(UavLog);
+            Type t = objectlist.FirstOrDefault().GetType();
             //FieldInfo[] fields = t.GetFields();
             FieldInfo[] fields = t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
 
-            string header = String.Join(separator, fields.Select(f => f.Name).ToArray());
+            var headersName = fields.Select(h => h.Name).ToArray();
+
+            var headers = new List<string>();
+            foreach (var name in headersName)
+            {
+                if (name.Contains(">"))
+                {
+                    var headerName = name.Substring(1, name.LastIndexOf(">", StringComparison.Ordinal) - 1);
+                    headers.Add(headerName); 
+                }
+            }
+            string header = String.Join(separator, headers);
 
             StringBuilder csvdata = new StringBuilder();
             csvdata.AppendLine(header);
-            List<string> lines = new List<string>();
-            lines.Add(header);
+            var lines = new List<string> {header};
             foreach (var o in objectlist)
             {
                 var objectLine = ToCsvFields(separator, fields, o);
@@ -124,6 +151,27 @@ namespace UavLogTool
 
                 return false;
             }
+        }
+
+        public static void ConvertCalssToCsv(VideoInfoModel[] objects, string path)
+        {
+            using (TextWriter writer = new StreamWriter(path))
+            using (var csv = new CsvWriter(writer,CultureInfo.InvariantCulture))
+            {
+                foreach (var value in objects)
+                {
+                    csv.WriteRecord(value);
+                }
+
+            }
+            //var csv = new CsvWriter(writer);
+
+            //csv.Configuration.Encoding = Encoding.UTF8;
+            //foreach (var value in valuess)
+            //{
+            //    csv.WriteRecord(value);
+            //}
+            //writer.Close();
         }
     }
 }
