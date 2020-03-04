@@ -3,26 +3,26 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components.Forms;
 using UavLogTool.Models;
 
 namespace UavLogTool
 {
     public class Helpers
     {
-        public static UavLog GetPositionScreemshotPostionFromVideo(string photoTimeStamp, List<UavLog> uavLogs)
+        public static UavLog GetUavLogFromVideoTimeStamp(TimeSpan imageTimeStamp, List<UavLog> uavLogs)
         {
             UavLog uavLog = null;
-            var formatStrings = new string[] { @"mm\:ss\.ff", @"mm\:ss\:ff", @"mm\:ss" };
-            TimeSpan imageTimeStamp;
-            if (TimeSpan.TryParseExact(photoTimeStamp, formatStrings, null, out imageTimeStamp))
+            if (imageTimeStamp!=TimeSpan.Zero)
             {
                 try
                 {
                     var videoLenght = GetVideoLenghtInMilliseconds(uavLogs);
                     if (imageTimeStamp.TotalMilliseconds < videoLenght)
                     {
-                        var firstVideoLog = uavLogs.Select(l => l.DateTime).Min();
-                        var photoTimeInVideo = firstVideoLog + imageTimeStamp;
+                        var firstVideoLog = GetfirstLog(uavLogs);
+
+                        var photoTimeInVideo = firstVideoLog.DateTime + imageTimeStamp;
 
                         //https://stackoverflow.com/a/7016646
                         var nearestDiff = uavLogs.Min(log => Math.Abs((log.DateTime - photoTimeInVideo).Ticks));
@@ -46,6 +46,42 @@ namespace UavLogTool
             return uavLog;
         }
 
+        public static TimeSpan GetTimeSpan(string timeStamp)
+        {
+            var formatStrings = new string[] { @"mm\:ss\.ff", @"mm\:ss\:ff", @"mm\:ss" };
+            TimeSpan imageTimeStamp = TimeSpan.Zero;
+            if (TimeSpan.TryParseExact(timeStamp, formatStrings, null, out imageTimeStamp))
+                return imageTimeStamp;
+            return imageTimeStamp;
+        }
+        public static UavLog GetfirstLog(List<UavLog> uavLogs)
+        {
+            UavLog uavLog = null;
+
+            uavLogs.Sort((x, y) => DateTime.Compare(x.DateTime, y.DateTime));
+
+
+            UavLog uavLogFirst = uavLogs.FirstOrDefault();
+
+            var years = uavLogs.Select(l => l.DateTime.Year);
+            var distinct = years.Distinct();
+
+            var dictionary = new Dictionary<int, int>();
+            foreach (var year in distinct)
+            {
+                var count = uavLogs.Count(l => l.DateTime.Year == year);
+                dictionary.Add(year, count);
+            }
+            var max = dictionary.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
+
+            var maxyearLogs = uavLogs.Where(l => l.DateTime.Year == max).ToList();
+            maxyearLogs.Sort((x, y) => DateTime.Compare(x.DateTime, y.DateTime));
+
+            uavLog = maxyearLogs.FirstOrDefault();
+
+
+            return uavLog;
+        }
 
         public static Dictionary<int, List<UavLog>> SplitVideosFromUavLog(List<UavLog> uavLogs)
         {
@@ -148,6 +184,29 @@ namespace UavLogTool
             return null;
         }
 
+        public static List<VideoInfoModel> GetVideoInfoModels(List<UavLog> videoLogs)
+        {
+            var videoInfoModels = new List<VideoInfoModel>();
+            var videoDuration = GetVideoLenghtInMilliseconds(videoLogs);
+            var time = ConvertMilisecondsToHMSmm(videoDuration);
+            var firstVideoLog = videoLogs.First();
+            var lastVideoLog = videoLogs.Last();
+            var filename = $"{videoLogs.FirstOrDefault()?.DateTime.ToString("_yyyy_MM_dd_HH-mm-ss")}_{time}.csv";
+
+            videoInfoModels.Add(new VideoInfoModel()
+            {
+                DateTime = firstVideoLog.DateTime,
+                Duration = time,
+                StartLatitud = firstVideoLog.UavLatititud,
+                StartLongitud = firstVideoLog.UavLongitud,
+                EndLatitud = lastVideoLog.UavLatititud,
+                EndLongitud = lastVideoLog.UavLongitud,
+                FileName = filename
+            });
+
+
+            return videoInfoModels;
+        }
         public static List<VideoInfoModel> GetVideoInfoModels(Dictionary<int, List<UavLog>> videosLogs)
         {
             var videoInfoModels = new List<VideoInfoModel>();
@@ -173,6 +232,25 @@ namespace UavLogTool
             }
 
             return videoInfoModels;
+        }
+
+        public static List<UavLog> TrimUavLogs(List<UavLog> logs, TimeSpan startTime, TimeSpan endTime)
+        {
+            var newUavLogs = new List<UavLog>();
+
+
+            var startlLog = GetUavLogFromVideoTimeStamp(startTime, logs);
+            var endLog = GetUavLogFromVideoTimeStamp(endTime, logs);
+
+
+            foreach (var uavLog in logs)
+            {
+                if (uavLog.DateTime >= startlLog.DateTime && uavLog.DateTime <= endLog.DateTime)
+                {
+                    newUavLogs.Add(uavLog);
+                }
+            }
+            return newUavLogs;
         }
     }
 }

@@ -12,7 +12,7 @@ using UavLogTool.Models;
 namespace UavLogTool
 {
     public class CsvUtilities
-    {
+    {
         public static Dictionary<string, int> GetDjiHeaderDictionary(string[] headres)
         {
             var djiLogs = UavLog.GetDJIMappingProperty();
@@ -30,6 +30,15 @@ namespace UavLogTool
                 }
             }
             return headerDictionary;
+        }
+        public static Dictionary<string, int> GetHeaderDictionary(string[] headres)
+        {
+            var headerDictionary = new Dictionary<string, int>();
+            for (var i = 0; i < headres.Count(); i++)
+            {
+                headerDictionary.Add(headres[i], i);
+            }
+            return headerDictionary;
         }
 
         public static List<UavLog> GetUavLosFromCsv(TextReader csvTextReader)
@@ -39,6 +48,7 @@ namespace UavLogTool
             CsvReader csv = new CsvReader(csvTextReader, csvConfiguration);
             csv.Configuration.Delimiter = ",";
             csv.Configuration.MissingFieldFound = null;
+
             while (csv.Read())
             {
                 UavLog Record = csv.GetRecord<UavLog>();
@@ -47,12 +57,13 @@ namespace UavLogTool
 
             return uavLogs;
         }
-        public static UavLog GetUavLog(string[] fields, Dictionary<string, int> headers)
+        public static UavLog GetUavLog(string[] fields, Dictionary<string, int> headers, int rowNumber)
         {
             var uavLog = new UavLog();
             var djiLog = UavLog.GetDJIMappingProperty();
 
 
+            //uavLog.RowNumber = rowNumber;
             uavLog.FlyTime = fields[headers["FlyTime"]];
             uavLog.UavLatititud = fields[headers["UavLatititud"]];
             uavLog.UavLongitud = fields[headers["UavLongitud"]];
@@ -60,17 +71,17 @@ namespace UavLogTool
             var pointDateTime = fields[headers["DateTime"]];
 
             DateTime dateTime;
-            var formatStrings = new string[] { "yyyy/MM/dd HH:mm:ss.fff", "yyyy-MM-dd hh:mm:ss", "yyyy-MM-dd", "mm:ss.f" };
+            var formatStrings = new string[] { "yyyy/MM/dd HH:mm:ss.fff", "yyyy-MM-dd hh:mm:ss", "yyyy-MM-dd", "mm:ss.f", "MM-dd-yyyy hh:mm:ss.fff tt", "dd-MM-yyyy hh:mm:ss.fff tt" };
             CultureInfo enUS = new CultureInfo("en-US");
 
-            if (DateTime.TryParseExact(pointDateTime, formatStrings, enUS, DateTimeStyles.None, out dateTime))
-                uavLog.DateTime = dateTime;
-
+            if (DateTime.TryParseExact(pointDateTime, formatStrings, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
+                uavLog.DateTime = dateTime;  
+            
             return uavLog;
-        }
-
-
-       //public static string ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)
+        }
+
+
+        //public static string ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)
         public static string[] ToCsv(string separator, IEnumerable<object> objectlist)
         {
             Type t = objectlist.FirstOrDefault().GetType();
@@ -81,18 +92,18 @@ namespace UavLogTool
 
             var headers = new List<string>();
             foreach (var name in headersName)
-            {
-                if (name.Contains(">"))
-                {
-                    var headerName = name.Substring(1, name.LastIndexOf(">", StringComparison.Ordinal) - 1);
-                    headers.Add(headerName); 
+            {
+                if (name.Contains(">"))
+                {
+                    var headerName = name.Substring(1, name.LastIndexOf(">", StringComparison.Ordinal) - 1);
+                    headers.Add(headerName);
                 }
             }
             string header = String.Join(separator, headers);
 
             StringBuilder csvdata = new StringBuilder();
             csvdata.AppendLine(header);
-            var lines = new List<string> {header};
+            var lines = new List<string> { header };
             foreach (var o in objectlist)
             {
                 var objectLine = ToCsvFields(separator, fields, o);
@@ -120,8 +131,9 @@ namespace UavLogTool
                 {
                     if (x is DateTime)
                     {
-                        var dateTime =(DateTime) x;
-                        linie.Append(dateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
+                        var dateTime = (DateTime)x;
+                        //linie.Append(dateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
+                        linie.Append(dateTime.ToString("dd/MM/yyyy hh:mm:ss.fff tt"));
                     }
                     else
                     {
@@ -156,13 +168,13 @@ namespace UavLogTool
         public static void ConvertCalssToCsv(VideoInfoModel[] objects, string path)
         {
             using (TextWriter writer = new StreamWriter(path))
-            using (var csv = new CsvWriter(writer,CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
                 foreach (var value in objects)
                 {
                     csv.WriteRecord(value);
-                }
-
+                }
+
             }
             //var csv = new CsvWriter(writer);
 
