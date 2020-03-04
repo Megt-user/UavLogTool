@@ -6,8 +6,6 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using CsvHelper;
-using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic.FileIO;
@@ -215,10 +213,10 @@ namespace UavLogTool.Controllers
 
             List<UavLog> uavLogs = new List<UavLog>();
 
-            using (TextReader reader = new StreamReader(uavLogsCsv.OpenReadStream()))
-            {
-                uavLogs = CsvUtilities.GetUavLosFromCsv(reader);
-            }
+            //using (TextReader reader = new StreamReader(uavLogsCsv.OpenReadStream()))
+            //{
+            //    uavLogs = CsvUtilities.GetUavLosFromCsv(reader);
+            //}
 
 
             return Ok();
@@ -245,10 +243,10 @@ namespace UavLogTool.Controllers
             }
             List<UavLog> uavLogs = new List<UavLog>();
 
-            using (TextReader reader = new StreamReader(uavLogsCsv.OpenReadStream()))
-            {
-                uavLogs = CsvUtilities.GetUavLosFromCsv(reader);
-            }
+            //using (TextReader reader = new StreamReader(uavLogsCsv.OpenReadStream()))
+            //{
+            //    uavLogs = CsvUtilities.GetUavLosFromCsv(reader);
+            //}
             TimeSpan timeSpan = Helpers.GetTimeSpan(time);
 
             var photolog = Helpers.GetUavLogFromVideoTimeStamp(timeSpan, uavLogs);//"03:56:22"

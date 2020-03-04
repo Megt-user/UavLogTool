@@ -5,8 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using CsvHelper;
-using CsvHelper.Configuration;
 using UavLogTool.Models;
 
 namespace UavLogTool
@@ -41,22 +39,22 @@ namespace UavLogTool
             return headerDictionary;
         }
 
-        public static List<UavLog> GetUavLosFromCsv(TextReader csvTextReader)
-        {
-            var uavLogs = new List<UavLog>();
-            CsvConfiguration csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture);
-            CsvReader csv = new CsvReader(csvTextReader, csvConfiguration);
-            csv.Configuration.Delimiter = ",";
-            csv.Configuration.MissingFieldFound = null;
+        //public static List<UavLog> GetUavLosFromCsv(TextReader csvTextReader)
+        //{
+        //    var uavLogs = new List<UavLog>();
+        //    CsvConfiguration csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture);
+        //    CsvReader csv = new CsvReader(csvTextReader, csvConfiguration);
+        //    csv.Configuration.Delimiter = ",";
+        //    csv.Configuration.MissingFieldFound = null;
 
-            while (csv.Read())
-            {
-                UavLog Record = csv.GetRecord<UavLog>();
-                uavLogs.Add(Record);
-            }
+        //    while (csv.Read())
+        //    {
+        //        UavLog Record = csv.GetRecord<UavLog>();
+        //        uavLogs.Add(Record);
+        //    }
 
-            return uavLogs;
-        }
+        //    return uavLogs;
+        //}
         public static UavLog GetUavLog(string[] fields, Dictionary<string, int> headers, int rowNumber)
         {
             var uavLog = new UavLog();
@@ -167,15 +165,15 @@ namespace UavLogTool
 
         public static void ConvertCalssToCsv(VideoInfoModel[] objects, string path)
         {
-            using (TextWriter writer = new StreamWriter(path))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-            {
-                foreach (var value in objects)
-                {
-                    csv.WriteRecord(value);
-                }
+            //using (TextWriter writer = new StreamWriter(path))
+            //using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            //{
+            //    foreach (var value in objects)
+            //    {
+            //        csv.WriteRecord(value);
+            //    }
 
-            }
+            //}
             //var csv = new CsvWriter(writer);
 
             //csv.Configuration.Encoding = Encoding.UTF8;
