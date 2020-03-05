@@ -69,7 +69,7 @@ namespace UavLogTool
             var pointDateTime = fields[headers["DateTime"]];
 
             DateTime dateTime;
-            var formatStrings = new string[] { "yyyy/MM/dd HH:mm:ss.fff", "yyyy-MM-dd hh:mm:ss", "yyyy-MM-dd", "mm:ss.f", "MM-dd-yyyy hh:mm:ss.fff tt", "dd-MM-yyyy hh:mm:ss.fff tt" };
+            var formatStrings = new string[] { "yyyy/MM/dd HH:mm:ss.fff", "yyyy-MM-dd hh:mm:ss", "yyyy-MM-dd", "mm:ss.f", "MM-dd-yyyy hh:mm:ss.fff tt", "dd-MM-yyyy hh:mm:ss.fff tt", "dd/MM/yyyy hh:mm:ss.fff" };
             CultureInfo enUS = new CultureInfo("en-US");
 
             if (DateTime.TryParseExact(pointDateTime, formatStrings, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))

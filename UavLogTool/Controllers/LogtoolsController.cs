@@ -36,7 +36,6 @@ namespace UavLogTool.Controllers
             else
             {
                 return BadRequest("CSV File Not Found");
-
             }
 
             List<VideoInfoModel> videoInfoModels;

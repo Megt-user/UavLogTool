@@ -115,7 +115,6 @@ namespace UavLogToolTest
 
             //var noko = Helpers.GetfirstLog(uavLogs);
 
-            //var newUavlogs = Helpers.TrimUavLogs(sortUavList, "01:36:22", "02:00:22");
             TimeSpan startTimeSpan = Helpers.GetTimeSpan("01:00.15");
             TimeSpan endTimeStamp = Helpers.GetTimeSpan("01:36.15");
 
