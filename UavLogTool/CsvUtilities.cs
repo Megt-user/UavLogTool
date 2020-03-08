@@ -79,23 +79,16 @@ namespace UavLogTool
         }
 
 
-        //public static string ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)
-        public static string[] ToCsv(string separator, IEnumerable<object> objectlist)
+        //public static string ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)        public static string[] ToCsv(string separator, IEnumerable<object> objectlist)
         {
             Type t = objectlist.FirstOrDefault().GetType();
             //FieldInfo[] fields = t.GetFields();
             FieldInfo[] fields = t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
 
             var headersName = fields.Select(h => h.Name).ToArray();
-
             var headers = new List<string>();
             foreach (var name in headersName)
-            {
-                if (name.Contains(">"))
-                {
-                    var headerName = name.Substring(1, name.LastIndexOf(">", StringComparison.Ordinal) - 1);
-                    headers.Add(headerName);
-                }
+            {                if (name.Contains(">"))                {                    var headerName = name.Substring(1, name.LastIndexOf(">", StringComparison.Ordinal) - 1);                    headers.Add(headerName);                }
             }
             string header = String.Join(separator, headers);
 
@@ -107,10 +100,7 @@ namespace UavLogTool
                 var objectLine = ToCsvFields(separator, fields, o);
                 lines.Add(objectLine);
                 csvdata.AppendLine(ToCsvFields(separator, fields, o));
-
             }
-
-            //return csvdata.ToString();
             return lines.ToArray();
         }
 

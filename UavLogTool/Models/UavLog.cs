@@ -14,6 +14,7 @@ namespace UavLogTool.Models
         public DateTime DateTime { get; set; }
         public int VideoNumber { get; set; }
         //public int RowNumber { get; set; }
+        //public string DjiFileLogName { get; set; }
 
         public static Dictionary<string, string> GetDJIMappingProperty()
         {

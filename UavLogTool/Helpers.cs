@@ -48,11 +48,19 @@ namespace UavLogTool
 
         public static TimeSpan GetTimeSpan(string timeStamp)
         {
-            var formatStrings = new string[] { @"mm\:ss\.ff", @"mm\:ss\:ff", @"mm\:ss" };
+            var formatStrings = new string[] { @"mm\:ss\.ff", @"mm\:ss\:ff", @"mm\:ss", @"hh\:mm\:ss\,fff" }; //00:09:05,000
             TimeSpan imageTimeStamp = TimeSpan.Zero;
             if (TimeSpan.TryParseExact(timeStamp, formatStrings, null, out imageTimeStamp))
                 return imageTimeStamp;
             return imageTimeStamp;
+        }  
+        public static DateTime GetDateTime(string dateTimeString)
+        {
+            var formatStrings = new string[] { "yyyy/MM/dd HH:mm:ss.fff", "yyyy.MM.dd HH:mm:ss", "yyyy-MM-dd hh:mm:ss", "yyyy-MM-dd", "mm:ss.f", "MM-dd-yyyy hh:mm:ss.fff tt", "dd-MM-yyyy hh:mm:ss.fff tt", "dd/MM/yyyy hh:mm:ss.fff" };
+            DateTime dateTime = DateTime.MinValue;
+            DateTime.TryParseExact(dateTimeString, formatStrings, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime);
+
+            return dateTime;
         }
         public static UavLog GetfirstLog(List<UavLog> uavLogs)
         {

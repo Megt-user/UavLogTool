@@ -62,12 +62,18 @@ namespace UavLogTool.Controllers
                         var index = djiHeaderDictionary["VideoRecordTime"];
 
                         var noko = fields[index];
-                        if (fields.Length > index && fields[index] != "0")
+
+                        if (fields.Length > index && !string.IsNullOrEmpty(fields[index]) && fields[index] != "0")
                         {
                             uavLogs.Add(CsvUtilities.GetUavLog(fields, djiHeaderDictionary, rowNumber));
                         }
                     }
                 }
+                if (!uavLogs.Any())
+                {
+                    return BadRequest("No Video log found in file");
+                }
+
                 var csv = String.Join(",", uavLogs);
 
                 //TODO not working
@@ -252,33 +258,94 @@ namespace UavLogTool.Controllers
 
             return Ok(photolog);
         }
+        // POST: api/Logtools
+        [HttpPost("GetCsvFromSrt")]
+        public async Task<IActionResult> GetCsvFromSrt(IFormFile srtLog)
+        {
+            long size = srtLog.Length;
+            string extension = Path.GetExtension(srtLog.FileName).ToLower();
+            if (size > 0)
+            {
+                if (!extension.Equals(".SRT",StringComparison.OrdinalIgnoreCase))
+                {
+                    return BadRequest("wrong file format");
+                }
+            }
+            else
+            {
+                return BadRequest("SRT File Not Found");
+            }
+            string line;
 
-        //// GET: api/Logtools
-        //[HttpGet]
-        //public IEnumerable<string> Get()
-        //{
-        //    return new string[] { "value1", "value2" };
-        //}
+            DjiSrtVideoLogModel djiSrtVideoLogModel = new DjiSrtVideoLogModel();
+            List<DjiSrtVideoLogModel> djiSrtVideoLogModels = new List<DjiSrtVideoLogModel>();
 
-        //// GET: api/Logtools/5
-        //[HttpGet("{id}", Name = "Get")]
-        //public string Get(int id)
-        //{
-        //    return "value";
-        //}
-
-
-
-        //// PUT: api/Logtools/5
-        //[HttpPut("{id}")]
-        //public void Put(int id, [FromBody] string value)
-        //{
-        //}
+            try
+            {
+                using (System.IO.StreamReader file = new System.IO.StreamReader(srtLog.OpenReadStream()))
+                {
+                    int lineCount = 0;
+                    int id = 0;
+                    while ((line = file.ReadLine()) != null)
+                    {
+                        int idTemp;
+                        if (int.TryParse(line, out idTemp))
+                        {
+                            djiSrtVideoLogModel = new DjiSrtVideoLogModel();
+                            id = idTemp;
+                            lineCount++;
+                        }
+                        if (id >= 1)
+                        {
+                            switch (lineCount)
+                            {
+                                case 1:
+                                    djiSrtVideoLogModel.Id = id;
+                                    lineCount++;
+                                    break;
+                                case 2:
+                                    djiSrtVideoLogModel = SrtConverter.GetTimeStamp(line, ref djiSrtVideoLogModel);
+                                    lineCount++;
+                                    break;
+                                case 3:
+                                    djiSrtVideoLogModel = SrtConverter.GetHomePointAndDateTime(line, ref djiSrtVideoLogModel);
+                                    lineCount++;
+                                    break;
+                                case 4:
+                                    djiSrtVideoLogModel = SrtConverter.GetGpsPointAndBarometer(line, ref djiSrtVideoLogModel);
+                                    lineCount++;
+                                    break;
+                                case 5:
+                                    djiSrtVideoLogModel = SrtConverter.GetCameraInfo(line, ref djiSrtVideoLogModel);
+                                    djiSrtVideoLogModels.Add(djiSrtVideoLogModel);
+                                    lineCount = 0;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                    if (djiSrtVideoLogModels.Any())
+                    {
+                        var csvVideoInfoModels = CsvUtilities.ToCsv(",", djiSrtVideoLogModels);
+                        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(srtLog.FileName);
+                        var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", $"{fileNameWithoutExtension}_resume.csv"), csvVideoInfoModels);
 
-        //// DELETE: api/ApiWithActions/5
-        //[HttpDelete("{id}")]
-        //public void Delete(int id)
-        //{
-        //}
+                        return Ok("Ok creating Srt to Csv");
+                    }
+                    else
+                    {
+                        return BadRequest("djiSrtVideoLogModels dont have any record");
+
+                    }
+                }
+
+            }
+            catch (Exception)
+            {
+
+                return BadRequest("Problem saving Srt to csv");
+            }
+        }
     }
 }
