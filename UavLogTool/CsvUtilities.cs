@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic.FileIO;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -10,7 +11,8 @@ using UavLogTool.Models;
 namespace UavLogTool
 {
     public class CsvUtilities
-    {
+    {
+
         public static Dictionary<string, int> GetDjiHeaderDictionary(string[] headres)
         {
             var djiLogs = UavLog.GetDJIMappingProperty();
@@ -28,33 +30,51 @@ namespace UavLogTool
                 }
             }
             return headerDictionary;
-        }
+        }
+
         public static Dictionary<string, int> GetHeaderDictionary(string[] headres)
         {
             var headerDictionary = new Dictionary<string, int>();
             for (var i = 0; i < headres.Count(); i++)
-            {
+            {
+
                 headerDictionary.Add(headres[i], i);
             }
             return headerDictionary;
         }
 
-        //public static List<UavLog> GetUavLosFromCsv(TextReader csvTextReader)
-        //{
-        //    var uavLogs = new List<UavLog>();
-        //    CsvConfiguration csvConfiguration = new CsvConfiguration(CultureInfo.InvariantCulture);
-        //    CsvReader csv = new CsvReader(csvTextReader, csvConfiguration);
-        //    csv.Configuration.Delimiter = ",";
-        //    csv.Configuration.MissingFieldFound = null;
+        public static List<UavLog> GetUavLogFromDjiCsv(TextFieldParser csvParser)
+        {
+            var uavLogs = new List<UavLog>();
+            csvParser.CommentTokens = new string[] { "#" };
+            csvParser.SetDelimiters(new string[] { "," });
+            csvParser.HasFieldsEnclosedInQuotes = true;
 
-        //    while (csv.Read())
-        //    {
-        //        UavLog Record = csv.GetRecord<UavLog>();
-        //        uavLogs.Add(Record);
-        //    }
+            //Processing row
+            string[] headers = csvParser.ReadFields();
+            var djiHeaderDictionary = CsvUtilities.GetDjiHeaderDictionary(headers);
 
-        //    return uavLogs;
-        //}
+
+            if (djiHeaderDictionary.Any())
+            {
+                int rowNumber = 1;
+                while (csvParser.PeekChars(1) != null)
+                {
+
+                    rowNumber++;
+                    string[] fields = csvParser.ReadFields();
+                    var index = djiHeaderDictionary["VideoRecordTime"];
+
+                    var noko = fields[index];
+
+                    if (fields.Length > index && !string.IsNullOrEmpty(fields[index]) && fields[index] != "0")
+                    {
+                        uavLogs.Add(CsvUtilities.GetUavLog(fields, djiHeaderDictionary, rowNumber));
+                    }
+                }
+            }
+            return uavLogs;
+        }
         public static UavLog GetUavLog(string[] fields, Dictionary<string, int> headers, int rowNumber)
         {
             var uavLog = new UavLog();
@@ -76,10 +96,14 @@ namespace UavLogTool
                 uavLog.DateTime = dateTime;  
             
             return uavLog;
-        }
-
-
-        //public static string ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)        public static string[] ToCsv(string separator, IEnumerable<object> objectlist)
+        }
+
+
+
+
+
+        //public static string ToCsv<UavLog>(string separator, IEnumerable<UavLog> objectlist)
+        public static string[] ToCsv(string separator, IEnumerable<object> objectlist)
         {
             Type t = objectlist.FirstOrDefault().GetType();
             //FieldInfo[] fields = t.GetFields();
@@ -88,7 +112,12 @@ namespace UavLogTool
             var headersName = fields.Select(h => h.Name).ToArray();
             var headers = new List<string>();
             foreach (var name in headersName)
-            {                if (name.Contains(">"))                {                    var headerName = name.Substring(1, name.LastIndexOf(">", StringComparison.Ordinal) - 1);                    headers.Add(headerName);                }
+            {
+                if (name.Contains(">"))
+                {
+                    var headerName = name.Substring(1, name.LastIndexOf(">", StringComparison.Ordinal) - 1);
+                    headers.Add(headerName);
+                }
             }
             string header = String.Join(separator, headers);
 
@@ -119,7 +148,8 @@ namespace UavLogTool
                 {
                     if (x is DateTime)
                     {
-                        var dateTime = (DateTime)x;
+                        var dateTime = (DateTime)x;
+
                         //linie.Append(dateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"));
                         linie.Append(dateTime.ToString("dd/MM/yyyy hh:mm:ss.fff tt"));
                     }
@@ -161,8 +191,10 @@ namespace UavLogTool
             //    foreach (var value in objects)
             //    {
             //        csv.WriteRecord(value);
-            //    }
-
+            //    }
+
+
+
             //}
             //var csv = new CsvWriter(writer);
 

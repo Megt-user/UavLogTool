@@ -8,6 +8,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UavLogToolTest", "UavLogToolTest\UavLogToolTest.csproj", "{67F151DF-3FAD-4C83-A8A3-7793DB9D90FB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UavLogConverter", "UavLogConverter\UavLogConverter.csproj", "{E5238E08-E310-433E-8FD4-6A4E572563F7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{48F66EAD-6F3D-425E-A06C-6EA2DFBE9183} = {48F66EAD-6F3D-425E-A06C-6EA2DFBE9183}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

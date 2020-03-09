@@ -9,8 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic.FileIO;
-using UavLogTool.Models;
-
+using UavLogTool.Models;
+
+
+
 
 
 namespace UavLogTool.Controllers
@@ -18,8 +20,10 @@ namespace UavLogTool.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class LogtoolsController : ControllerBase
-    {
-
+    {
+
+
+
         // POST: api/Logtools
         [HttpPost("GetCsvVideoInfo")]
         public async Task<IActionResult> GetCsvVideoLogInfo(IFormFile djiCsvLog)
@@ -56,7 +60,8 @@ namespace UavLogTool.Controllers
                 {
                     int rowNumber = 1;
                     while (csvParser.PeekChars(1) != null)
-                    {
+                    {
+
                         rowNumber++;
                         string[] fields = csvParser.ReadFields();
                         var index = djiHeaderDictionary["VideoRecordTime"];
@@ -80,9 +85,12 @@ namespace UavLogTool.Controllers
                 //var uavlogsSort = uavLogs.OrderBy(l => l.DateTime).ToList();
 
                 var dictionarylog = Helpers.SplitVideosFromUavLog(uavLogs);
-                var video1LenghInMilliseconds = Helpers.GetVideoLenghtInMilliseconds(dictionarylog.FirstOrDefault().Value);
-
-
+                var video1LenghInMilliseconds = Helpers.GetVideoLenghtInMilliseconds(dictionarylog.FirstOrDefault().Value);
+
+
+
+
+
                 foreach (var videologs in dictionarylog)
                 {
                     var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
@@ -100,10 +108,14 @@ namespace UavLogTool.Controllers
                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(djiCsvLog.FileName);
                 var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", $"{fileNameWithoutExtension}_resume.csv"), csvVideoInfoModels);
                 return Ok(videoInfoModels);
-            }
-
-            return BadRequest("Something Went wrong");
-
+            }
+
+
+
+            return BadRequest("Something Went wrong");
+
+
+
         }
 
         // POST: api/Logtools
@@ -150,20 +162,26 @@ namespace UavLogTool.Controllers
                 string csv = String.Join(",", uavLogs);
             }
             var sortUavList = uavLogs;
-            sortUavList.Sort((x, y) => DateTime.Compare(x.DateTime, y.DateTime));
-
+            sortUavList.Sort((x, y) => DateTime.Compare(x.DateTime, y.DateTime));
+
+
+
             //var newUavlogs = Helpers.TrimUavLogs(sortUavList, "01:00:22", "01:36:22");
-            TimeSpan startTimeSpan = Helpers.GetTimeSpan(startTime);
+            TimeSpan startTimeSpan = Helpers.GetTimeSpan(startTime);
+
             TimeSpan endTimeSpan = Helpers.GetTimeSpan(endTime);
             if (startTimeSpan == TimeSpan.Zero)
             {
                 return BadRequest($"cant get video start time from string '{startTime}'");
-            }
+            }
+
             if (endTimeSpan == TimeSpan.Zero)
             {
                 return BadRequest($"cant get video end time from string '{endTime}'");
-            }
-            var newUavlogs = Helpers.TrimUavLogs(sortUavList, startTimeSpan, endTimeSpan);
+            }
+
+            var newUavlogs = Helpers.TrimUavLogs(sortUavList, startTimeSpan, endTimeSpan);
+
             var videoInfoModels = Helpers.GetVideoInfoModels(newUavlogs);
 
 
@@ -171,19 +189,26 @@ namespace UavLogTool.Controllers
             {
                 var csvVideoInfoModels = CsvUtilities.ToCsv(",", videoInfoModels);
                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(uavLogsCsv.FileName);
-                var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", $"{fileNameWithoutExtension}_resume.csv"), csvVideoInfoModels);
-
-
+                var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", $"{fileNameWithoutExtension}_resume.csv"), csvVideoInfoModels);
+
+
+
+
+
                 // convert string to stream
                 byte[] byteArray = Encoding.UTF8.GetBytes(string.Concat(csvVideoInfoModels));
                 var stream = new MemoryStream(byteArray);
                 return File(stream, "application/octet-stream", $"{ fileNameWithoutExtension}_resume.csv");
             }
             return BadRequest("No file Created");
-        }
-
-
-        // POST: api/Logtools
+        }
+
+
+
+
+
+        // POST: api/Logtools
+
         [HttpPost("UpdateImageExfifFromCsv")]
         public async Task<IActionResult> UpdateImageExfifFromCsv(IFormFile uavLogsCsv, IFormFile image, string time)
         {
