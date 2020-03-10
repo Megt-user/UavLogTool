@@ -75,6 +75,29 @@ namespace UavLogTool
             }
             return uavLogs;
         }
+        public static List<UavLog> GetUavLogFromTextFile(TextFieldParser csvParser)
+        {
+
+            csvParser.SetDelimiters(new string[] { "," });
+            csvParser.HasFieldsEnclosedInQuotes = true;
+
+            string[] headers = csvParser.ReadFields();
+            var djiHeaderDictionary = CsvUtilities.GetHeaderDictionary(headers);
+
+            var uavLogs = new List<UavLog>();
+
+            if (djiHeaderDictionary.Any())
+            {
+                int rowNumber = 1;
+                while (csvParser.PeekChars(1) != null)
+                {
+                    rowNumber++;
+                    string[] fields = csvParser.ReadFields();
+                    uavLogs.Add(GetUavLog(fields, djiHeaderDictionary, rowNumber));
+                }
+            }
+            return uavLogs;
+        }
         public static UavLog GetUavLog(string[] fields, Dictionary<string, int> headers, int rowNumber)
         {
             var uavLog = new UavLog();

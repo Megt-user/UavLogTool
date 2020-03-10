@@ -18,6 +18,7 @@ namespace UavLogConverter
 {
     public partial class Form1 : Form
     {
+        private TimeSpan _timeSpan;
         public Form1()
         {
             InitializeComponent();
@@ -35,9 +36,6 @@ namespace UavLogConverter
                 DialogResult messageResult = MessageBox.Show($"Do you wanna transform: '{djiCsvLog}'?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (messageResult == DialogResult.Yes)
                 {
-                    //code for No
-
-
                     try
                     {
                         string extension = Path.GetExtension(djiCsvLog).ToLower();
@@ -47,9 +45,6 @@ namespace UavLogConverter
                             string title = "Error";
                             MessageBox.Show(message, title);
                         }
-                        //string message = "CSV File Not Found";
-                        //string title = "Error";
-                        //MessageBox.Show(message, title);
 
                         List<VideoInfoModel> videoInfoModels;
                         var uavLogs = new List<UavLog>();
@@ -103,6 +98,99 @@ namespace UavLogConverter
                         MessageBox.Show(message, title);
                     }
                 }
+            }
+        }
+
+        private void GetGpsLocationFormVideoLog_Click(object videoLogCsv, EventArgs e)
+        {
+            DialogResult result = openFileDialog.ShowDialog(); // Show the dialog.
+            if (result == DialogResult.OK) // Test result.
+            {
+                string videoLogCsvPath = openFileDialog.FileName;
+
+                filePathTextBox.Text = string.Format("{0}/{1}", Path.GetDirectoryName(videoLogCsvPath), videoLogCsvPath);
+                filePathTextBox.Refresh();
+                DialogResult messageResult = MessageBox.Show($"You want to get screenshot '{ScreenShotTimeStamptextBox1.Text}' GPS position from file:'{Path.GetFileName(videoLogCsvPath)}'?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (messageResult == DialogResult.Yes)
+                {
+                    try
+                    {
+                        string extension = Path.GetExtension(videoLogCsvPath).ToLower();
+                        if (extension != ".csv")
+                        {
+                            string message = "Wrong File Type";
+                            string title = "Error";
+                            MessageBox.Show(message, title);
+                            GetGpsLocationFormVideoLog.PerformClick();
+                        }
+                        else
+                        {
+
+
+                            List<UavLog> uavLogs = new List<UavLog>();
+
+                            using (TextFieldParser csvParser = new TextFieldParser(videoLogCsvPath))
+                            {
+                                uavLogs = CsvUtilities.GetUavLogFromTextFile(csvParser);
+                            }
+
+                            var sortedUavLogs = Helpers.FilterUavlosAndSort(uavLogs);
+                            var videoLenght = Helpers.GetVideoLenghtInMilliseconds(sortedUavLogs);
+                            var videoLengh = Helpers.ConvertMilisecondsToHMSmm(videoLenght);
+                            if (_timeSpan.TotalMilliseconds < videoLenght)
+                            {
+                                var photolog = Helpers.GetUavLogFromVideoTimeStamp(_timeSpan, uavLogs);
+                                jsonOutput.Text = JsonConvert.SerializeObject(photolog);
+                                jsonOutput.ScrollBars = ScrollBars.Vertical;
+                                jsonOutput.WordWrap = false;
+                            }
+                            else
+                            {
+                                MessageBox.Show($"Screenshot time {ScreenShotTimeStamptextBox1.Text} is bigger than the video time {videoLengh}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                ScreenShotTimeStamptextBox1.Focus();
+                                GetGpsLocationFormVideoLog.Enabled = false;
+                                filePathTextBox.Text = "";
+                                filePathTextBox.Refresh();
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        //
+                    }
+                }
+                else
+                {
+                    GetGpsLocationFormVideoLog.PerformClick();
+                }
+            }
+        }
+
+        private void ScreenShotTimeStamptextBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                if (string.IsNullOrEmpty(ScreenShotTimeStamptextBox1.Text))
+                {
+                    MessageBox.Show($"You must enter the timestamp from the screenshot", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ScreenShotTimeStamptextBox1.Focus();
+                    GetGpsLocationFormVideoLog.Enabled = false;
+                }
+                else
+                {
+                    var timeStamp = Helpers.GetTimeSpan(ScreenShotTimeStamptextBox1.Text);
+                    if (timeStamp == TimeSpan.Zero)
+                    {
+                        MessageBox.Show($"wrong screenshot timestamp", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ScreenShotTimeStamptextBox1.Focus();
+                        GetGpsLocationFormVideoLog.Enabled = false;
+                    }
+                    else
+                    {
+                        _timeSpan = timeStamp;
+                        GetGpsLocationFormVideoLog.Enabled = true;
+                    }
+                } 
             }
         }
     }

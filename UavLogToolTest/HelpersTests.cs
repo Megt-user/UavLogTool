@@ -124,6 +124,57 @@ namespace UavLogToolTest
             var filePath = Path.Combine(@"C:\Temp\", "sort_test.csv");
             var csvVideoLogs = CsvUtilities.ToCsv(",", newUavlogs);
             var saved = CsvUtilities.SaveCsvTofile(filePath, csvVideoLogs);
+        } 
+        [Fact]
+        public void GetUavLogFromVideoTimeStampTest()
+        {
+            List<UavLog> uavLogs = new List<UavLog>();
+            var path = @"Data\200122_12-28-09_1.csv"; // "," dateTime: "2020/01/22 12:25:55.734"
+
+            using (TextFieldParser csvParser = new TextFieldParser(path))
+            {
+                csvParser.CommentTokens = new string[] { "#" };
+                csvParser.SetDelimiters(new string[] { "," });
+                csvParser.HasFieldsEnclosedInQuotes = true;
+
+                string[] headers = csvParser.ReadFields();
+                var djiHeaderDictionary = CsvUtilities.GetHeaderDictionary(headers);
+
+
+
+                if (djiHeaderDictionary.Any())
+                {
+                    int rowNumber = 1;
+                    while (csvParser.PeekChars(1) != null)
+                    {
+                        rowNumber++;
+                        string[] fields = csvParser.ReadFields();
+                        uavLogs.Add(CsvUtilities.GetUavLog(fields, djiHeaderDictionary, rowNumber));
+                    }
+                }
+
+                string csv = String.Join(",", uavLogs);
+            }
+            var sortUavList = uavLogs;
+            sortUavList.Sort((x, y) => DateTime.Compare(x.DateTime, y.DateTime));
+
+            //var noko = Helpers.GetfirstLog(uavLogs);
+
+            TimeSpan timeSpanp = Helpers.GetTimeSpan("12:36.15");
+            var sortedUavLogs = Helpers.FilterUavlosAndSort(uavLogs);
+            var videoLenght = Helpers.GetVideoLenghtInMilliseconds(sortedUavLogs);
+            var videoLengh = Helpers.ConvertMilisecondsToHMSmm(videoLenght);
+            if (timeSpanp.TotalMilliseconds < videoLenght)
+            {
+                var photolog = Helpers.GetUavLogFromVideoTimeStamp(timeSpanp, uavLogs);
+
+            }
+            else
+            {
+
+            }
+
+
         }
     }
 }

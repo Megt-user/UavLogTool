@@ -13,11 +13,16 @@ namespace UavLogTool
         public static UavLog GetUavLogFromVideoTimeStamp(TimeSpan imageTimeStamp, List<UavLog> uavLogs)
         {
             UavLog uavLog = null;
-            if (imageTimeStamp!=TimeSpan.Zero)
+            if (imageTimeStamp != TimeSpan.Zero)
             {
                 try
                 {
-                    var videoLenght = GetVideoLenghtInMilliseconds(uavLogs);
+                    var sortedUavLogs = FilterUavlosAndSort(uavLogs);
+                    var videoLenght = GetVideoLenghtInMilliseconds(sortedUavLogs);
+                    var videoLengh = ConvertMilisecondsToHMSmm(videoLenght);
+                    var milli = imageTimeStamp.TotalMilliseconds;
+                    var videoLengh2 = ConvertMilisecondsToHMSmm(milli);
+
                     if (imageTimeStamp.TotalMilliseconds < videoLenght)
                     {
                         var firstVideoLog = GetfirstLog(uavLogs);
@@ -53,7 +58,7 @@ namespace UavLogTool
             if (TimeSpan.TryParseExact(timeStamp, formatStrings, null, out imageTimeStamp))
                 return imageTimeStamp;
             return imageTimeStamp;
-        }  
+        }
         public static DateTime GetDateTime(string dateTimeString)
         {
             var formatStrings = new string[] { "yyyy/MM/dd HH:mm:ss.fff", "yyyy.MM.dd HH:mm:ss", "yyyy-MM-dd hh:mm:ss", "yyyy-MM-dd", "mm:ss.f", "MM-dd-yyyy hh:mm:ss.fff tt", "dd-MM-yyyy hh:mm:ss.fff tt", "dd/MM/yyyy hh:mm:ss.fff" };
@@ -64,7 +69,12 @@ namespace UavLogTool
         }
         public static UavLog GetfirstLog(List<UavLog> uavLogs)
         {
-            UavLog uavLog = null;
+            var maxyearLogs = FilterUavlosAndSort(uavLogs);
+            var uavLog = maxyearLogs.FirstOrDefault();
+            return uavLog;
+        }
+        public static List<UavLog> FilterUavlosAndSort(List<UavLog> uavLogs)
+        {
 
             uavLogs.Sort((x, y) => DateTime.Compare(x.DateTime, y.DateTime));
 
@@ -85,10 +95,7 @@ namespace UavLogTool
             var maxyearLogs = uavLogs.Where(l => l.DateTime.Year == max).ToList();
             maxyearLogs.Sort((x, y) => DateTime.Compare(x.DateTime, y.DateTime));
 
-            uavLog = maxyearLogs.FirstOrDefault();
-
-
-            return uavLog;
+            return maxyearLogs;
         }
 
         public static Dictionary<int, List<UavLog>> SplitVideosFromUavLog(List<UavLog> uavLogs)
@@ -130,10 +137,12 @@ namespace UavLogTool
 
         public static double GetVideoLenghtInMilliseconds(List<UavLog> uavLogs)
         {
+            var sortUavList = uavLogs;
+            sortUavList.Sort((x, y) => DateTime.Compare(x.DateTime, y.DateTime));
 
-            var dateTimeFirst = uavLogs.First().DateTime;
+            var dateTimeFirst = sortUavList.First().DateTime;
             //var dateTimeFirst = uavLogs.Select(log => log.DateTime).Min();
-            var dateTimeLast = uavLogs.Last().DateTime;
+            var dateTimeLast = sortUavList.Last().DateTime;
             //var dateTimeLast =  uavLogs.Select(log=>log.DateTime).Max();
             var videoLenght = (dateTimeLast - dateTimeFirst).TotalMilliseconds;
             return videoLenght;

@@ -273,10 +273,10 @@ namespace UavLogTool.Controllers
             }
             List<UavLog> uavLogs = new List<UavLog>();
 
-            //using (TextReader reader = new StreamReader(uavLogsCsv.OpenReadStream()))
-            //{
-            //    uavLogs = CsvUtilities.GetUavLosFromCsv(reader);
-            //}
+            using (TextFieldParser csvParser = new TextFieldParser(uavLogsCsv.OpenReadStream()))
+            {
+                uavLogs = CsvUtilities.GetUavLogFromTextFile(csvParser);
+            }
             TimeSpan timeSpan = Helpers.GetTimeSpan(time);
 
             var photolog = Helpers.GetUavLogFromVideoTimeStamp(timeSpan, uavLogs);//"03:56:22"
