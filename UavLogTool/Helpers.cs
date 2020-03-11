@@ -13,11 +13,12 @@ namespace UavLogTool
         public static UavLog GetUavLogFromVideoTimeStamp(TimeSpan imageTimeStamp, List<UavLog> uavLogs)
         {
             UavLog uavLog = null;
+            var sortedUavLogs = FilterUavlogAndSort(uavLogs);
+
             if (imageTimeStamp != TimeSpan.Zero)
             {
                 try
                 {
-                    var sortedUavLogs = FilterUavlosAndSort(uavLogs);
                     var videoLenght = GetVideoLenghtInMilliseconds(sortedUavLogs);
                     var videoLengh = ConvertMilisecondsToHMSmm(videoLenght);
                     var milli = imageTimeStamp.TotalMilliseconds;
@@ -48,6 +49,10 @@ namespace UavLogTool
                     //return null;
                 }
             }
+            else
+            {
+                uavLog = sortedUavLogs.FirstOrDefault();
+            }
             return uavLog;
         }
 
@@ -69,11 +74,11 @@ namespace UavLogTool
         }
         public static UavLog GetfirstLog(List<UavLog> uavLogs)
         {
-            var maxyearLogs = FilterUavlosAndSort(uavLogs);
+            var maxyearLogs = FilterUavlogAndSort(uavLogs);
             var uavLog = maxyearLogs.FirstOrDefault();
             return uavLog;
         }
-        public static List<UavLog> FilterUavlosAndSort(List<UavLog> uavLogs)
+        public static List<UavLog> FilterUavlogAndSort(List<UavLog> uavLogs)
         {
 
             uavLogs.Sort((x, y) => DateTime.Compare(x.DateTime, y.DateTime));
@@ -103,6 +108,7 @@ namespace UavLogTool
             var videoLogs = new Dictionary<int, List<UavLog>>();
 
             var uavlogsTemp = new List<UavLog>();
+            var uavlogs = new List<UavLog>();
             int videoNumber = 1;
 
             int actualInt;
@@ -119,7 +125,8 @@ namespace UavLogTool
                 {
                     if (previousInt > actualInt)
                     {
-                        videoLogs.Add(videoNumber, uavlogsTemp);
+                        uavlogs = FilterUavlogAndSort(uavlogsTemp);
+                        videoLogs.Add(videoNumber, uavlogs);
                         videoNumber++;
                         uavlogsTemp = new List<UavLog>();
                     }
@@ -130,7 +137,8 @@ namespace UavLogTool
                 uavlogsTemp.Add(log);
             }
 
-            videoLogs.Add(videoNumber, uavlogsTemp);
+            uavlogs = FilterUavlogAndSort(uavlogsTemp);
+            videoLogs.Add(videoNumber, uavlogs);
 
             return videoLogs;
         }
@@ -255,16 +263,22 @@ namespace UavLogTool
         {
             var newUavLogs = new List<UavLog>();
 
+            var videoLenght = GetVideoLenghtInMilliseconds(logs);
+            var videoLengh = ConvertMilisecondsToHMSmm(videoLenght);
+            var milli = endTime.TotalMilliseconds;
+            var videoLengh2 = ConvertMilisecondsToHMSmm(milli);
 
-            var startlLog = GetUavLogFromVideoTimeStamp(startTime, logs);
-            var endLog = GetUavLogFromVideoTimeStamp(endTime, logs);
-
-
-            foreach (var uavLog in logs)
+            if (endTime.TotalMilliseconds < videoLenght && startTime < endTime)
             {
-                if (uavLog.DateTime >= startlLog.DateTime && uavLog.DateTime <= endLog.DateTime)
+                var startlLog = GetUavLogFromVideoTimeStamp(startTime, logs);
+                var endLog = GetUavLogFromVideoTimeStamp(endTime, logs);
+
+                foreach (var uavLog in logs)
                 {
-                    newUavLogs.Add(uavLog);
+                    if (uavLog.DateTime >= startlLog.DateTime && uavLog.DateTime <= endLog.DateTime)
+                    {
+                        newUavLogs.Add(uavLog);
+                    }
                 }
             }
             return newUavLogs;

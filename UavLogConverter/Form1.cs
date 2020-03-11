@@ -19,11 +19,15 @@ namespace UavLogConverter
     public partial class Form1 : Form
     {
         private TimeSpan _timeSpan;
+        private TimeSpan _StartTimeSpan;
+        private TimeSpan _EndTimeSpan;
         public Form1()
         {
             InitializeComponent();
         }
         OpenFileDialog openFileDialog = new OpenFileDialog();
+        FolderBrowserDialog folderBrowserDialog1 = new FolderBrowserDialog();
+
         private void LoadDjiCsv_Click(object sender, EventArgs e)
         {
             int size = -1;
@@ -66,13 +70,6 @@ namespace UavLogConverter
                         var dictionarylog = Helpers.SplitVideosFromUavLog(uavLogs);
                         var video1LenghInMilliseconds = Helpers.GetVideoLenghtInMilliseconds(dictionarylog.FirstOrDefault().Value);
 
-                        foreach (var videologs in dictionarylog)
-                        {
-                            var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
-
-                            var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("_yyyy-MM-dd_HH-mm-ss")}_{videologs.Key}.csv";
-                            var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", filename), csvVideoLogs);
-                        }
                         videoInfoModels = Helpers.GetVideoInfoModels(dictionarylog);
 
 
@@ -82,13 +79,46 @@ namespace UavLogConverter
                             jsonOutput.ScrollBars = ScrollBars.Vertical;
                             jsonOutput.WordWrap = false;
 
-                            //var csvVideoInfoModels = CsvUtilities.ToCsv(",", videoInfoModels);
-                            //var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(djiCsvLog);
-                            //var saved = CsvUtilities.SaveCsvTofile(Path.Combine(@"C:\Temp\", $"{fileNameWithoutExtension}_resume.csv"), csvVideoInfoModels);
-                            string message = "File Saved";
-                            string title = "OK";
 
-                            MessageBox.Show(message, title);
+
+                            DialogResult saveMessageResult = MessageBox.Show($"Do you wanna to save the Output files?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                            if (saveMessageResult == DialogResult.Yes)
+                            {
+                                // Show the FolderBrowserDialog.
+                                DialogResult folderBrowser = folderBrowserDialog1.ShowDialog();
+                                if (folderBrowser == DialogResult.OK)
+                                {
+                                    string folderPath = folderBrowserDialog1.SelectedPath;
+                                    foreach (var videologs in dictionarylog)
+                                    {
+                                        var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
+
+                                        var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("_yyyy-MM-dd_HH-mm-ss")}_{videologs.Key}.csv";
+                                        var csvFileSaved = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, filename), csvVideoLogs);
+                                        if (!csvFileSaved)
+                                        {
+                                            saveMessageResult = MessageBox.Show($"cant save csv file {filename}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                            jsonOutput.Text = "";
+                                            jsonOutput.Refresh();
+                                            return;
+                                        }
+
+                                    }
+
+                                    var csvVideoInfoModels = CsvUtilities.ToCsv(",", videoInfoModels);
+                                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(djiCsvLog);
+                                    var savedVideoSummary = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, $"{fileNameWithoutExtension}_resume.csv"), csvVideoInfoModels);
+                                    if (!savedVideoSummary)
+                                    {
+                                        saveMessageResult = MessageBox.Show($"cant save csv file {fileNameWithoutExtension}_resume.csv", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                        jsonOutput.Text = "";
+                                        jsonOutput.Refresh();
+                                        return;
+                                    }
+                                    saveMessageResult = MessageBox.Show($"files saved", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                }
+                            }
                         }
                     }
                     catch (IOException)
@@ -134,7 +164,7 @@ namespace UavLogConverter
                                 uavLogs = CsvUtilities.GetUavLogFromTextFile(csvParser);
                             }
 
-                            var sortedUavLogs = Helpers.FilterUavlosAndSort(uavLogs);
+                            var sortedUavLogs = Helpers.FilterUavlogAndSort(uavLogs);
                             var videoLenght = Helpers.GetVideoLenghtInMilliseconds(sortedUavLogs);
                             var videoLengh = Helpers.ConvertMilisecondsToHMSmm(videoLenght);
                             if (_timeSpan.TotalMilliseconds < videoLenght)
@@ -168,7 +198,7 @@ namespace UavLogConverter
 
         private void ScreenShotTimeStamptextBox1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter)
+            if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Tab)
             {
                 if (string.IsNullOrEmpty(ScreenShotTimeStamptextBox1.Text))
                 {
@@ -190,7 +220,174 @@ namespace UavLogConverter
                         _timeSpan = timeStamp;
                         GetGpsLocationFormVideoLog.Enabled = true;
                     }
-                } 
+                }
+            }
+        }
+        SaveFileDialog SaveFileDialog1 = new SaveFileDialog();
+        private void endTimetextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Tab)
+            {
+                if (endTimetextBox.Text == "0" || string.IsNullOrEmpty(endTimetextBox.Text))
+                {
+                    MessageBox.Show($"You must enter the End time", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ScreenShotTimeStamptextBox1.Focus();
+                    GetGpsLocationFormVideoLog.Enabled = false;
+                    endTimetextBox.Focus();
+                }
+                else
+                {
+                    var timeStamp = Helpers.GetTimeSpan(endTimetextBox.Text);
+                    if (timeStamp == TimeSpan.Zero)
+                    {
+                        MessageBox.Show($"wrong end time", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        endTimetextBox.Focus();
+                    }
+                    else
+                    {
+                        _EndTimeSpan = timeStamp;
+                        loadVideoToTrim.Enabled = true;
+                    }
+
+                }
+            }
+        }
+        private void StartTimetextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+
+            if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Tab)
+            {
+                if (startTimetextBox.Text == "0" || string.IsNullOrEmpty(startTimetextBox.Text))
+                {
+                    _StartTimeSpan = TimeSpan.Zero;
+                    startTimetextBox.Text = "00:00.00";
+                    startTimetextBox.Refresh();
+                    endTimetextBox.Enabled = true;
+                    endTimetextBox.Focus();
+                }
+                else
+                {
+                    var timeStamp = Helpers.GetTimeSpan(startTimetextBox.Text);
+                    if (timeStamp == TimeSpan.Zero)
+                    {
+                        MessageBox.Show($"wrong screenshot timestamp", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        startTimetextBox.Focus();
+                        endTimetextBox.Enabled = false;
+                        loadVideoToTrim.Enabled = false;
+                    }
+                    else
+                    {
+                        _StartTimeSpan = timeStamp;
+                        endTimetextBox.Enabled = true;
+                        endTimetextBox.Focus();
+                    }
+
+                }
+            }
+        }
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+            DialogResult result = openFileDialog.ShowDialog(); // Show the dialog.
+            if (result == DialogResult.OK) // Test result.
+            {
+                string videoLogCsvPath = openFileDialog.FileName;
+
+                filePathTextBox.Text = string.Format("{0}/{1}", Path.GetDirectoryName(videoLogCsvPath), videoLogCsvPath);
+                filePathTextBox.Refresh();
+                DialogResult messageResult = MessageBox.Show($"You want trim Video Log '{Path.GetFileName(videoLogCsvPath)}' from: '{startTimetextBox.Text} to {endTimetextBox.Text}' ?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (messageResult == DialogResult.Yes)
+                {
+                    try
+                    {
+                        string extension = Path.GetExtension(videoLogCsvPath).ToLower();
+                        if (extension != ".csv")
+                        {
+                            string message = "Wrong File Type";
+                            string title = "Error";
+                            MessageBox.Show(message, title);
+                            GetGpsLocationFormVideoLog.PerformClick();
+                        }
+                        else
+                        {
+
+
+                            List<UavLog> uavLogs = new List<UavLog>();
+
+                            using (TextFieldParser csvParser = new TextFieldParser(videoLogCsvPath))
+                            {
+                                uavLogs = CsvUtilities.GetUavLogFromTextFile(csvParser);
+                            }
+
+                            var sortUavList = Helpers.FilterUavlogAndSort(uavLogs);
+
+                            var videoLenght = Helpers.GetVideoLenghtInMilliseconds(sortUavList);
+                            var videoLengh = Helpers.ConvertMilisecondsToHMSmm(videoLenght);
+
+                            if (_EndTimeSpan.TotalMilliseconds > videoLenght)
+                            {
+                                MessageBox.Show($"The end time '{endTimetextBox.Text}' exceeds the length of the video '{videoLengh}'", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                endTimetextBox.Focus();
+                                loadVideoToTrim.Enabled = false;
+                                return;
+                            }
+
+                            var newUavlogs = Helpers.TrimUavLogs(sortUavList, _StartTimeSpan, _EndTimeSpan);
+                            var videoInfoModels = Helpers.GetVideoInfoModels(newUavlogs);
+
+                            if (videoInfoModels != null)
+                            {
+
+                                jsonOutput.Text = JArray.FromObject(videoInfoModels).ToString();
+                                jsonOutput.ScrollBars = ScrollBars.Vertical;
+                                jsonOutput.WordWrap = false;
+
+
+
+                                DialogResult saveMessageResult = MessageBox.Show($"Do you wanna to save the Output fil?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                                if (saveMessageResult == DialogResult.Yes)
+                                {
+                                    // Show the FolderBrowserDialog.
+                                    DialogResult folderBrowser = folderBrowserDialog1.ShowDialog();
+                                    if (folderBrowser == DialogResult.OK)
+                                    {
+                                        string folderPath = folderBrowserDialog1.SelectedPath;
+                                        var csvVideoLogs = CsvUtilities.ToCsv(",", newUavlogs);
+
+                                        var filename = $"{newUavlogs.FirstOrDefault().DateTime.ToString("_yyyy-MM-dd_HH-mm-ss")}_trimmed.csv";
+                                        var csvFileSaved = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, filename), csvVideoLogs);
+                                        if (!csvFileSaved)
+                                        {
+                                            saveMessageResult = MessageBox.Show($"cant save csv file {filename}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                            jsonOutput.Text = "";
+                                            jsonOutput.Refresh();
+                                            return;
+                                        }
+
+
+                                        var csvVideoInfoModels = CsvUtilities.ToCsv(",", videoInfoModels);
+                                        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(videoLogCsvPath);
+                                        var savedVideoSummary = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, $"{fileNameWithoutExtension}_trimmed_resume.csv"), csvVideoInfoModels);
+                                        if (!savedVideoSummary)
+                                        {
+                                            saveMessageResult = MessageBox.Show($"cant save csv file {fileNameWithoutExtension}_trimmed_resume.csv", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                            jsonOutput.Text = "";
+                                            jsonOutput.Refresh();
+                                            return;
+                                        }
+                                        saveMessageResult = MessageBox.Show($"files saved", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        MessageBox.Show($"Something went wrong", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    }
+                }
             }
         }
     }

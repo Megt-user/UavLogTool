@@ -161,7 +161,7 @@ namespace UavLogToolTest
             //var noko = Helpers.GetfirstLog(uavLogs);
 
             TimeSpan timeSpanp = Helpers.GetTimeSpan("12:36.15");
-            var sortedUavLogs = Helpers.FilterUavlosAndSort(uavLogs);
+            var sortedUavLogs = Helpers.FilterUavlogAndSort(uavLogs);
             var videoLenght = Helpers.GetVideoLenghtInMilliseconds(sortedUavLogs);
             var videoLengh = Helpers.ConvertMilisecondsToHMSmm(videoLenght);
             if (timeSpanp.TotalMilliseconds < videoLenght)

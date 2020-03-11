@@ -122,7 +122,7 @@ namespace UavLogToolTest
                 var time = Helpers.ConvertMilisecondsToHMSmm(video1LenghInMilliseconds);
                 TimeSpan timeSpan = Helpers.GetTimeSpan("03:56:22");
 
-                var photolog = Helpers.GetUavLogFromVideoTimeStamp(timeSpan, dictionarylog[2]);
+                var photolog = Helpers.GetUavLogFromVideoTimeStamp(TimeSpan.Zero, dictionarylog[2]);
                 string filePath = null;
                 //foreach (var videologs in dictionarylog)
                 //{
