@@ -59,6 +59,8 @@
             this.LoadDjiCsv.TabIndex = 0;
             this.LoadDjiCsv.Text = " DJI CSV File";
             this.LoadDjiCsv.UseVisualStyleBackColor = true;
+            this.LoadDjiCsv.MouseClick += new System.Windows.Forms.MouseEventHandler(this.LoadDjiCsv_Click);
+
             // 
             // filePathTextBox
             // 
@@ -84,6 +86,8 @@
             this.GetGpsLocationFormVideoLog.TabIndex = 3;
             this.GetGpsLocationFormVideoLog.Text = "Video Log Csv File";
             this.GetGpsLocationFormVideoLog.UseVisualStyleBackColor = true;
+            this.GetGpsLocationFormVideoLog.MouseClick += new System.Windows.Forms.MouseEventHandler(this.GetGpsLocationFormVideoLog_Click);
+
             // 
             // label1
             // 
@@ -109,6 +113,8 @@
             this.ScreenShotTimeStamptextBox1.Name = "ScreenShotTimeStamptextBox1";
             this.ScreenShotTimeStamptextBox1.Size = new System.Drawing.Size(86, 20);
             this.ScreenShotTimeStamptextBox1.TabIndex = 6;
+            this.ScreenShotTimeStamptextBox1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ScreenShotTimeStamptextBox1_KeyDown);
+
             // 
             // label3
             // 
@@ -137,6 +143,8 @@
             this.loadVideoToTrim.TabIndex = 9;
             this.loadVideoToTrim.Text = "Load Video to Trim";
             this.loadVideoToTrim.UseVisualStyleBackColor = true;
+            this.loadVideoToTrim.MouseClick += new System.Windows.Forms.MouseEventHandler(this.button1_Click);
+
             // 
             // startTimetextBox
             // 
@@ -144,6 +152,8 @@
             this.startTimetextBox.Name = "startTimetextBox";
             this.startTimetextBox.Size = new System.Drawing.Size(86, 20);
             this.startTimetextBox.TabIndex = 10;
+            this.startTimetextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.StartTimetextBox_KeyDown);
+
             // 
             // endTimetextBox
             // 
@@ -152,6 +162,8 @@
             this.endTimetextBox.Name = "endTimetextBox";
             this.endTimetextBox.Size = new System.Drawing.Size(86, 20);
             this.endTimetextBox.TabIndex = 11;
+            this.endTimetextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.endTimetextBox_KeyDown);
+
             // 
             // label5
             // 
