@@ -236,7 +236,7 @@
             this.gMapControl1.LevelsKeepInMemory = 5;
             this.gMapControl1.Location = new System.Drawing.Point(300, 95);
             this.gMapControl1.MarkersEnabled = true;
-            this.gMapControl1.MaxZoom = 2;
+            this.gMapControl1.MaxZoom = 100;
             this.gMapControl1.MinZoom = 2;
             this.gMapControl1.MouseWheelZoomEnabled = true;
             this.gMapControl1.MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
@@ -251,6 +251,7 @@
             this.gMapControl1.Size = new System.Drawing.Size(688, 475);
             this.gMapControl1.TabIndex = 16;
             this.gMapControl1.Zoom = 0D;
+
             // 
             // Form1
             // 

@@ -399,18 +399,41 @@ namespace UavLogConverter
 
         public void AddUavLogToMap(UavLog uavLog)
         {
+
+
+
+
+
             //https://stackoverflow.com/a/31764053
 
             gMapControl1.DragButton = MouseButtons.Left;
-            gMapControl1.MinZoom = 1;
-            gMapControl1.MaxZoom = 100;
+            //gMapControl1.MinZoom = 6;
+            //gMapControl1.MaxZoom = 100;
             gMapControl1.MapProvider = GMapProviders.GoogleMap;
 
+
+            GMapOverlay markersOverlay = new GMapOverlay("markers");
+
+            //TODO worck with To points
+            //GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(-25.966688, 32.580528),
+            //  GMarkerGoogleType.green);
+            //markersOverlay.Markers.Add(marker);
+
+            //marker = new GMarkerGoogle(new PointLatLng(-43.966688, 11.580528),
+            // GMarkerGoogleType.green);
+            //markersOverlay.Markers.Add(marker);
+            //gMapControl1.Overlays.Add(markersOverlay);
+
+
+            //gMapControl1.ZoomAndCenterMarkers("markers");
+
+
+            //todo Zoom to marker not working
             //Clean the map
             gMapControl1.Overlays.Clear();
 
             //Create a new overlay 
-            GMapOverlay markersOverlay = new GMapOverlay("markers");
+
             double lat = Convert.ToDouble(uavLog.UavLatititud);
             double lng = Convert.ToDouble(uavLog.UavLongitud);
             PointLatLng pointLatLng = new PointLatLng(lat, lng);
@@ -424,9 +447,13 @@ namespace UavLogConverter
             //Add the overlay on the gMapControl1(Map)
             gMapControl1.Overlays.Add(markersOverlay);
 
+
             double zoomAtual = gMapControl1.Zoom;
             gMapControl1.Zoom = zoomAtual + 1;
             gMapControl1.Zoom = zoomAtual;
+
+
+
 
             //double zoomAtual = gMapControl1.Zoom;
             //gMapControl1.Zoom = zoomAtual + 1;
