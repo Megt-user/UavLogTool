@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="GMap.NET.Windows" Version="1.9.9.9" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\UavLogTool\UavLogTool.csproj" />
   </ItemGroup>
 
