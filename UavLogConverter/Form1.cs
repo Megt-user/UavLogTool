@@ -1,4 +1,8 @@
-﻿using Microsoft.VisualBasic.FileIO;
+﻿using GMap.NET;
+using GMap.NET.MapProviders;
+using GMap.NET.WindowsForms;
+using GMap.NET.WindowsForms.Markers;
+using Microsoft.VisualBasic.FileIO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -173,6 +177,8 @@ namespace UavLogConverter
                                 jsonOutput.Text = JsonConvert.SerializeObject(photolog);
                                 jsonOutput.ScrollBars = ScrollBars.Vertical;
                                 jsonOutput.WordWrap = false;
+
+                                AddUavLogToMap(photolog);
                             }
                             else
                             {
@@ -389,6 +395,43 @@ namespace UavLogConverter
                     }
                 }
             }
+        }
+
+        public void AddUavLogToMap(UavLog uavLog)
+        {
+            //https://stackoverflow.com/a/31764053
+
+            gMapControl1.DragButton = MouseButtons.Left;
+            gMapControl1.MinZoom = 1;
+            gMapControl1.MaxZoom = 100;
+            gMapControl1.MapProvider = GMapProviders.GoogleMap;
+
+            //Clean the map
+            gMapControl1.Overlays.Clear();
+
+            //Create a new overlay 
+            GMapOverlay markersOverlay = new GMapOverlay("markers");
+            double lat = Convert.ToDouble(uavLog.UavLatititud);
+            double lng = Convert.ToDouble(uavLog.UavLongitud);
+            PointLatLng pointLatLng = new PointLatLng(lat, lng);
+
+            //Create a red marker
+            GMarkerGoogle marker1 = new GMarkerGoogle(pointLatLng, GMarkerGoogleType.red);
+
+            //Add a marker on the overlay
+            markersOverlay.Markers.Add(marker1);
+
+            //Add the overlay on the gMapControl1(Map)
+            gMapControl1.Overlays.Add(markersOverlay);
+
+            double zoomAtual = gMapControl1.Zoom;
+            gMapControl1.Zoom = zoomAtual + 1;
+            gMapControl1.Zoom = zoomAtual;
+
+            //double zoomAtual = gMapControl1.Zoom;
+            //gMapControl1.Zoom = zoomAtual + 1;
+            //gMapControl1.Zoom = zoomAtual;
+
         }
     }
 }
