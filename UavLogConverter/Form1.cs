@@ -1,4 +1,5 @@
-﻿using GMap.NET;
+﻿using GeoCoordinatePortable;
+using GMap.NET;
 using GMap.NET.MapProviders;
 using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -84,6 +86,7 @@ namespace UavLogConverter
                             jsonOutput.WordWrap = false;
 
 
+                            AddUavLogToMap(uavLogs);
 
                             DialogResult saveMessageResult = MessageBox.Show($"Do you wanna to save the Output files?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -397,22 +400,15 @@ namespace UavLogConverter
             }
         }
 
-        public void AddUavLogToMap(UavLog uavLog)
+        public void AddUavLogToMap(List<UavLog> uavLogs)
         {
-
-
-
-
-
             //https://stackoverflow.com/a/31764053
 
             gMapControl1.DragButton = MouseButtons.Left;
-            //gMapControl1.MinZoom = 6;
-            //gMapControl1.MaxZoom = 100;
+
             gMapControl1.MapProvider = GMapProviders.GoogleMap;
 
 
-            GMapOverlay markersOverlay = new GMapOverlay("markers");
 
             //TODO worck with To points
             //GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(-25.966688, 32.580528),
@@ -431,34 +427,86 @@ namespace UavLogConverter
             //todo Zoom to marker not working
             //Clean the map
             gMapControl1.Overlays.Clear();
+            GMapOverlay markersOverlay = new GMapOverlay("markers");
 
-            //Create a new overlay 
+            var newUavlog = GMapUtilities.FilterUavLogByDistance(uavLogs, 80);
+
+            var points = new List<PointLatLng>();
+            for (int index = 0; index < newUavlog.Count - 1; index++)
+            {
+
+                double lat = Convert.ToDouble(newUavlog[index].UavLatititud);
+                double lng = Convert.ToDouble(newUavlog[index].UavLongitud);
+
+                PointLatLng pointLatLng = new PointLatLng(lat, lng);
+                points.Add(pointLatLng);
+
+
+                //Create a red marker
+                GMarkerGoogle marker1 = new GMarkerGoogle(pointLatLng, GMarkerGoogleType.green);
+
+                //Add a marker on the overlay
+                markersOverlay.Markers.Add(marker1);
+            }
+
+
+            var route = new GMapRoute(points, "sample route");
+
+            route.Stroke = new Pen(new Color());
+            route.Stroke.Color = Color.DarkRed;
+            route.Stroke.Width = 4;
+            route.Stroke.DashStyle = System.Drawing.Drawing2D.DashStyle.DashDot;
+            route.Stroke.StartCap = LineCap.NoAnchor;
+            route.Stroke.EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
+            route.Stroke.LineJoin = LineJoin.Round;
+
+            GMapOverlay uavTrack = new GMapOverlay("Uav track");
+
+            uavTrack.Routes.Add(route);
+
+
+
+            //Add the overlay on the gMapControl1(Map)
+            gMapControl1.Overlays.Add(uavTrack);
+            gMapControl1.Overlays.Add(markersOverlay);
+            gMapControl1.MinZoom = 5;
+            gMapControl1.MaxZoom = 100;
+            //double zoomAtual = gMapControl1.Zoom;
+            //gMapControl1.Zoom = zoomAtual + 1;
+            //gMapControl1.Zoom = zoomAtual;
+            gMapControl1.ZoomAndCenterMarkers("markers");
+
+
+        }
+        public void AddUavLogToMap(UavLog uavLog)
+        {
+            //https://stackoverflow.com/a/31764053
+
+            gMapControl1.DragButton = MouseButtons.Left;
+            gMapControl1.MapProvider = GMapProviders.GoogleMap;
+
+            //Clean the map
+            gMapControl1.Overlays.Clear();
+            GMapOverlay markersOverlay = new GMapOverlay("markers");
+
 
             double lat = Convert.ToDouble(uavLog.UavLatititud);
             double lng = Convert.ToDouble(uavLog.UavLongitud);
             PointLatLng pointLatLng = new PointLatLng(lat, lng);
 
             //Create a red marker
-            GMarkerGoogle marker1 = new GMarkerGoogle(pointLatLng, GMarkerGoogleType.red);
+            GMarkerGoogle marker1 = new GMarkerGoogle(pointLatLng, GMarkerGoogleType.green);
 
             //Add a marker on the overlay
             markersOverlay.Markers.Add(marker1);
 
             //Add the overlay on the gMapControl1(Map)
             gMapControl1.Overlays.Add(markersOverlay);
-
-
+            gMapControl1.MinZoom = 5;
+            gMapControl1.MaxZoom = 100;
             double zoomAtual = gMapControl1.Zoom;
             gMapControl1.Zoom = zoomAtual + 1;
             gMapControl1.Zoom = zoomAtual;
-
-
-
-
-            //double zoomAtual = gMapControl1.Zoom;
-            //gMapControl1.Zoom = zoomAtual + 1;
-            //gMapControl1.Zoom = zoomAtual;
-
         }
     }
 }
