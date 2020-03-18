@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using GeoCoordinatePortable;
 using UavLogTool.Models;
+using UavLog = UavLogConverter.Models.UavLog;
 
 namespace UavLogConverter
 {

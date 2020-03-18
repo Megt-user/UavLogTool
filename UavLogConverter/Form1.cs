@@ -1,5 +1,4 @@
-﻿using GeoCoordinatePortable;
-using GMap.NET;
+﻿using GMap.NET;
 using GMap.NET.MapProviders;
 using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
@@ -8,17 +7,12 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using UavLogTool;
-using UavLogTool.Models;
+using UavLogConverter.Models;
 
 namespace UavLogConverter
 {
@@ -399,6 +393,7 @@ namespace UavLogConverter
                 }
             }
         }
+
 
         public void AddUavLogToMap(List<UavLog> uavLogs)
         {
