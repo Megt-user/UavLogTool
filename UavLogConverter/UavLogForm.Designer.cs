@@ -1,6 +1,6 @@
 ﻿namespace UavLogConverter
 {
-    partial class Form1
+    partial class UavLogForm
     {
         /// <summary>
         ///  Required designer variable.
@@ -276,7 +276,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.endTimetextBox);
             this.Controls.Add(this.splitter1);
-            this.Name = "Form1";
+            this.Name = "UavLogForm";
             this.Text = "Uav Log Converter";
             this.splitter1.ResumeLayout(false);
             this.splitter1.PerformLayout();

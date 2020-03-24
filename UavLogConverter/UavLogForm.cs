@@ -16,12 +16,12 @@ using UavLogConverter.Models;
 
 namespace UavLogConverter
 {
-    public partial class Form1 : Form
+    public partial class UavLogForm : Form
     {
         private TimeSpan _timeSpan;
         private TimeSpan _StartTimeSpan;
         private TimeSpan _EndTimeSpan;
-        public Form1()
+        public UavLogForm()
         {
             InitializeComponent();
         }
