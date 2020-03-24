@@ -82,7 +82,7 @@ namespace UavLogConverter
                             jsonOutput.WordWrap = false;
 
 
-                            AddUavLogToMap(uavLogs);
+                            AddUavLogToMap();
 
                             SaveDjiCsv.Visible = true;
                             LoadDjiCsv.Visible = false;
@@ -260,7 +260,7 @@ namespace UavLogConverter
                 }
             }
         }
-        private void button1_Click(object sender, EventArgs e)
+        private void loadVideoToTrim_Click(object sender, EventArgs e)
         {
 
             DialogResult result = openFileDialog.ShowDialog(); // Show the dialog.
@@ -308,52 +308,33 @@ namespace UavLogConverter
                             }
 
                             var newUavlogs = Helpers.TrimUavLogs(sortUavList, _startTimeSpan, _EndTimeSpan);
+
+                           
                             var videoInfoModels = Helpers.GetVideoInfoModels(newUavlogs);
 
                             if (videoInfoModels != null)
                             {
+                                loadVideoToTrim.Visible = false;
+                                saveTrimVideo.Visible = true;
+                                saveTrimVideo.Focus();
 
                                 jsonOutput.Text = JArray.FromObject(videoInfoModels).ToString();
                                 jsonOutput.ScrollBars = ScrollBars.Vertical;
                                 jsonOutput.WordWrap = false;
-
-
-
-                                DialogResult saveMessageResult = MessageBox.Show($"Do you wanna to save the Output fil?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                                if (saveMessageResult == DialogResult.Yes)
+                                
+                                _uavLogDictionary = new Dictionary<int, List<UavLog>>()
                                 {
-                                    // Show the FolderBrowserDialog.
-                                    DialogResult folderBrowser = folderBrowserDialog1.ShowDialog();
-                                    if (folderBrowser == DialogResult.OK)
-                                    {
-                                        string folderPath = folderBrowserDialog1.SelectedPath;
-                                        var csvVideoLogs = CsvUtilities.ToCsv(",", newUavlogs);
+                                    {1,newUavlogs }
+                                };
+                                
+                                _fileName = Path.GetFileNameWithoutExtension(videoLogCsvPath);
 
-                                        var filename = $"{newUavlogs.FirstOrDefault().DateTime.ToString("_yyyy-MM-dd_HH-mm-ss")}_trimmed.csv";
-                                        var csvFileSaved = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, filename), csvVideoLogs);
-                                        if (!csvFileSaved)
-                                        {
-                                            saveMessageResult = MessageBox.Show($"cant save csv file {filename}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                            jsonOutput.Text = "";
-                                            jsonOutput.Refresh();
-                                            return;
-                                        }
+                                AddUavLogToMap();
 
+                             
+                                    
+                               
 
-                                        var csvVideoInfoModels = CsvUtilities.ToCsv(",", videoInfoModels);
-                                        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(videoLogCsvPath);
-                                        var savedVideoSummary = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, $"{fileNameWithoutExtension}_trimmed_resume.csv"), csvVideoInfoModels);
-                                        if (!savedVideoSummary)
-                                        {
-                                            saveMessageResult = MessageBox.Show($"cant save csv file {fileNameWithoutExtension}_trimmed_resume.csv", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                            jsonOutput.Text = "";
-                                            jsonOutput.Refresh();
-                                            return;
-                                        }
-                                        saveMessageResult = MessageBox.Show($"files saved", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                    }
-                                }
                             }
                         }
                     }
@@ -367,7 +348,7 @@ namespace UavLogConverter
         }
 
 
-        public void AddUavLogToMap(List<UavLog> uavLogs)
+        public void AddUavLogToMap()
         {
             //https://stackoverflow.com/a/31764053
 
@@ -376,21 +357,25 @@ namespace UavLogConverter
             //Clean the map
             gMapControl1.Overlays.Clear();
 
-            var newUavlog = GMapUtilities.FilterUavLogByDistance(uavLogs, 80);
-
-            var points2 = GMapUtilities.GetPointLatlngsFromUavLogs(_uavLogDictionary);
-
             var markers = new List<GMapOverlay>();
             var routs = new List<GMapOverlay>();
             GMapOverlay markersOverlay = new GMapOverlay("markers");
             GMapOverlay uavTrack = new GMapOverlay($"Uav track");
 
-
             int index = 0;
-            foreach (var item in points2)
+            foreach (var uavLog in _uavLogDictionary)
             {
 
-                foreach (PointLatLng pointLatLng in item.Value)
+                var pointsLatLgnList = GMapUtilities.GetPointLatlngsFromUavLogs(uavLog.Value);
+                GMapRoute route = GMapUtilities.AddPointsLatLgnToRout(pointsLatLgnList, index);
+                
+                var routeDistance = route.Distance;
+                var pointsDistance = (int)Math.Ceiling((routeDistance*1000) / 8);
+                var newUavlog = GMapUtilities.SplitUavLogByDistance(uavLog.Value, pointsDistance);
+                var newUavLogsPointLatLngs = GMapUtilities.GetPointLatlngsFromUavLogs(newUavlog);
+
+
+                foreach (PointLatLng pointLatLng in newUavLogsPointLatLngs)
                 {
                     //Create a red marker
                     GMarkerGoogle marker1 = new GMarkerGoogle(pointLatLng, GMapUtilities.GetColor(index));
@@ -399,17 +384,15 @@ namespace UavLogConverter
                     markersOverlay.Markers.Add(marker1);
                 }
                 markers.Add(markersOverlay);
-                var route = GMapUtilities.AddPointsLatLgnToRout(item.Value, index);
+                
+                
                 uavTrack.Routes.Add(route);
                 routs.Add(uavTrack);
 
                 index++;
             }
 
-
-
-
-
+         
             gMapControl1.Overlays.Add(markersOverlay);
             gMapControl1.Overlays.Add(uavTrack);
 
@@ -472,6 +455,54 @@ namespace UavLogConverter
                 }
             }
 
+        }
+
+        private void saveTrimVideo_Click(object sender, MouseEventArgs e)
+        {
+            DialogResult saveMessageResult = MessageBox.Show($"Do you wanna to save the Output fil?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (saveMessageResult == DialogResult.Yes)
+            {
+                var uavlogs = _uavLogDictionary.Values.FirstOrDefault();
+                var videoInfoModels = Helpers.GetVideoInfoModels(uavlogs);
+
+                // Show the FolderBrowserDialog.
+                DialogResult folderBrowser = folderBrowserDialog1.ShowDialog();
+                if (folderBrowser == DialogResult.OK)
+                {
+                    string folderPath = folderBrowserDialog1.SelectedPath;
+                    var csvVideoLogs = CsvUtilities.ToCsv(",", uavlogs);
+
+                    
+                    string filename = "newFlightLogTrimed.csv";
+                    if (uavlogs != null)
+                    {
+                        filename = $"{uavlogs.FirstOrDefault()?.DateTime.ToString("_yyyy-MM-dd_HH-mm-ss")}_trimmed.csv";
+                    }
+
+                    var csvFileSaved = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, filename), csvVideoLogs);
+                    if (!csvFileSaved)
+                    {
+                        saveMessageResult = MessageBox.Show($"cant save csv file {filename}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        jsonOutput.Text = "";
+                        jsonOutput.Refresh();
+                        return;
+                    }
+
+
+                    var csvVideoInfoModels = CsvUtilities.ToCsv(",", videoInfoModels);
+                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(_fileName);
+                    var savedVideoSummary = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, $"{fileNameWithoutExtension}_trimmed_resume.csv"), csvVideoInfoModels);
+                    if (!savedVideoSummary)
+                    {
+                        saveMessageResult = MessageBox.Show($"cant save csv file {fileNameWithoutExtension}_trimmed_resume.csv", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        jsonOutput.Text = "";
+                        jsonOutput.Refresh();
+                        return;
+                    }
+                    saveMessageResult = MessageBox.Show($"files saved", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
         }
     }
 }

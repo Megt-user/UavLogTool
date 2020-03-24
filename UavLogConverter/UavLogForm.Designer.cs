@@ -40,6 +40,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.loadVideoToTrim = new System.Windows.Forms.Button();
+            this.saveTrimVideo = new System.Windows.Forms.Button();
             this.startTimetextBox = new System.Windows.Forms.TextBox();
             this.endTimetextBox = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
@@ -145,7 +146,7 @@
             this.label4.Size = new System.Drawing.Size(133, 13);
             this.label4.TabIndex = 8;
             this.label4.Text = "Scrennm Shot Time Stamp";
-            // 
+            //
             // loadVideoToTrim
             // 
             this.loadVideoToTrim.Enabled = false;
@@ -155,7 +156,18 @@
             this.loadVideoToTrim.TabIndex = 9;
             this.loadVideoToTrim.Text = "Load Video to Trim";
             this.loadVideoToTrim.UseVisualStyleBackColor = true;
-            this.loadVideoToTrim.MouseClick += new System.Windows.Forms.MouseEventHandler(this.button1_Click);
+            this.loadVideoToTrim.MouseClick += new System.Windows.Forms.MouseEventHandler(this.loadVideoToTrim_Click);
+            // 
+            // SaveTrimVideo
+            // 
+            this.saveTrimVideo.Location = new System.Drawing.Point(50, 296);
+            this.saveTrimVideo.Name = "saveTrimVideo";
+            this.saveTrimVideo.Size = new System.Drawing.Size(111, 23);
+            this.saveTrimVideo.TabIndex = 9;
+            this.saveTrimVideo.Text = "Save trim Trim";
+            this.saveTrimVideo.UseVisualStyleBackColor = true;
+            this.saveTrimVideo.MouseClick += new System.Windows.Forms.MouseEventHandler(this.saveTrimVideo_Click); // 
+            this.saveTrimVideo.Visible = false;
 
             // 
             // startTimetextBox
@@ -281,6 +293,7 @@
             this.Controls.Add(this.jsonOutput);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.loadVideoToTrim);
+            this.Controls.Add(this.saveTrimVideo);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.LoadDjiCsv);
@@ -310,6 +323,7 @@
         private System.Windows.Forms.TextBox ScreenShotTimeStamptextBox1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Button saveTrimVideo;
         private System.Windows.Forms.Button loadVideoToTrim;
         private System.Windows.Forms.TextBox startTimetextBox;
         private System.Windows.Forms.TextBox endTimetextBox;

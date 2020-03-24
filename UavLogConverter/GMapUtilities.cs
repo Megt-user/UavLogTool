@@ -33,35 +33,31 @@ namespace UavLogConverter
             return distance;
         }
 
-        public static List<UavLog> FilterUavLogByDistance(List<UavLog> uavLogs, int distance)
+        public static List<UavLog> SplitUavLogByDistance(List<UavLog> uavLogs, int distance)
         {
             var uavLogsNew = new List<UavLog>();
-            for (int index = 0; index < uavLogs.Count - 1; index++)
+            for (int index = 0; index <= uavLogs.Count - 1; index++)
             {
                 if (index == 0)
                 {
                     uavLogsNew.Add(uavLogs.FirstOrDefault());
+                    continue;
                 }
 
-                if (index == uavLogs.Count - 1)
+                //Create a new overlay 
+                for (int index2 = index; index2 < uavLogs.Count - 1; index2++)
                 {
-                    uavLogsNew.Add(uavLogs.LastOrDefault());
-                }
-                else
-                {
-                    //Create a new overlay 
-                    for (int index2 = index; index2 < uavLogs.Count - 1; index2++)
+                    var coordinateDistance = GetCoordinateDistance(uavLogs[index].UavLatititud, uavLogs[index].UavLongitud, uavLogs[index2].UavLatititud, uavLogs[index2].UavLongitud);
+                    if (coordinateDistance >= distance)
                     {
-                        var coordinateDistance = GetCoordinateDistance(uavLogs[index].UavLatititud, uavLogs[index].UavLongitud, uavLogs[index2].UavLatititud, uavLogs[index2].UavLongitud);
-                        if (coordinateDistance >= distance)
-                        {
-                            uavLogsNew.Add(uavLogs[index2]);
-                            index = index2;
-                            break;
-                        }
+                        uavLogsNew.Add(uavLogs[index2]);
+                        index = index2;
+                        break;
                     }
                 }
+
             }
+            uavLogsNew.Add(uavLogs.Last());
 
             return uavLogsNew;
         }
@@ -106,7 +102,7 @@ namespace UavLogConverter
             var pointsDictionary = new Dictionary<int, List<PointLatLng>>();
             foreach (var uavLog in uavLogs)
             {
-                var newUavlog = GMapUtilities.FilterUavLogByDistance(uavLog.Value, 80);
+                var newUavlog = GMapUtilities.SplitUavLogByDistance(uavLog.Value, 80);
                 pointsDictionary.Add(uavLog.Key, GetPointLatlngsFromUavLogs(newUavlog));
             }
             return pointsDictionary;
@@ -206,5 +202,7 @@ namespace UavLogConverter
                     break;
             }
         }
+
+
     }
 }
