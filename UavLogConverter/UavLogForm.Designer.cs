@@ -29,6 +29,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.SaveDjiCsv = new System.Windows.Forms.Button();
             this.LoadDjiCsv = new System.Windows.Forms.Button();
             this.filePathTextBox = new System.Windows.Forms.TextBox();
             this.jsonOutput = new System.Windows.Forms.TextBox();
@@ -51,8 +52,19 @@
             this.splitter1.SuspendLayout();
             this.SuspendLayout();
             // 
+            // SaveDjiCsv
+            // 
+            this.SaveDjiCsv.Location = new System.Drawing.Point(55, 36);
+            this.SaveDjiCsv.Name = "SaveDjiCsv";
+            this.SaveDjiCsv.Size = new System.Drawing.Size(67, 42);
+            this.SaveDjiCsv.TabIndex = 0;
+            this.SaveDjiCsv.Text = " Save CSV File";
+            this.SaveDjiCsv.UseVisualStyleBackColor = true;
+            this.SaveDjiCsv.MouseClick += new System.Windows.Forms.MouseEventHandler(this.SaveDjiCsv_Click); // 
+            this.SaveDjiCsv.Visible = false;
             // LoadDjiCsv
             // 
+            this.LoadDjiCsv.Visible = true;
             this.LoadDjiCsv.Location = new System.Drawing.Point(55, 36);
             this.LoadDjiCsv.Name = "LoadDjiCsv";
             this.LoadDjiCsv.Size = new System.Drawing.Size(67, 42);
@@ -272,6 +284,7 @@
             this.Controls.Add(this.label7);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.LoadDjiCsv);
+            this.Controls.Add(this.SaveDjiCsv);
             this.Controls.Add(this.startTimetextBox);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.endTimetextBox);
@@ -287,6 +300,7 @@
 
         #endregion
 
+        private System.Windows.Forms.Button SaveDjiCsv;
         private System.Windows.Forms.Button LoadDjiCsv;
         private System.Windows.Forms.TextBox filePathTextBox;
         private System.Windows.Forms.TextBox jsonOutput;

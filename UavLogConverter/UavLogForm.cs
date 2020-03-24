@@ -19,8 +19,10 @@ namespace UavLogConverter
     public partial class UavLogForm : Form
     {
         private TimeSpan _timeSpan;
-        private TimeSpan _StartTimeSpan;
+        private TimeSpan _startTimeSpan;
         private TimeSpan _EndTimeSpan;
+        private Dictionary<int, List<UavLog>> _uavLogDictionary;
+        private string _fileName;
         public UavLogForm()
         {
             InitializeComponent();
@@ -67,10 +69,10 @@ namespace UavLogConverter
 
                         var csv = String.Join(",", uavLogs);
 
-                        var dictionarylog = Helpers.SplitVideosFromUavLog(uavLogs);
-                        var video1LenghInMilliseconds = Helpers.GetVideoLenghtInMilliseconds(dictionarylog.FirstOrDefault().Value);
+                        _uavLogDictionary = Helpers.SplitVideosFromUavLog(uavLogs);
+                        var video1LenghInMilliseconds = Helpers.GetVideoLenghtInMilliseconds(_uavLogDictionary.FirstOrDefault().Value);
 
-                        videoInfoModels = Helpers.GetVideoInfoModels(dictionarylog);
+                        videoInfoModels = Helpers.GetVideoInfoModels(_uavLogDictionary);
 
 
                         if (videoInfoModels != null)
@@ -82,44 +84,14 @@ namespace UavLogConverter
 
                             AddUavLogToMap(uavLogs);
 
-                            DialogResult saveMessageResult = MessageBox.Show($"Do you wanna to save the Output files?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                            SaveDjiCsv.Visible = true;
+                            LoadDjiCsv.Visible = false;
+                            SaveDjiCsv.Focus();
 
-                            if (saveMessageResult == DialogResult.Yes)
-                            {
-                                // Show the FolderBrowserDialog.
-                                DialogResult folderBrowser = folderBrowserDialog1.ShowDialog();
-                                if (folderBrowser == DialogResult.OK)
-                                {
-                                    string folderPath = folderBrowserDialog1.SelectedPath;
-                                    foreach (var videologs in dictionarylog)
-                                    {
-                                        var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
+                            var csvVideoInfoModels = CsvUtilities.ToCsv(",", videoInfoModels);
+                            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(djiCsvLog);
+                            _fileName = Path.GetFileNameWithoutExtension(djiCsvLog);
 
-                                        var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("_yyyy-MM-dd_HH-mm-ss")}_{videologs.Key}.csv";
-                                        var csvFileSaved = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, filename), csvVideoLogs);
-                                        if (!csvFileSaved)
-                                        {
-                                            saveMessageResult = MessageBox.Show($"cant save csv file {filename}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                            jsonOutput.Text = "";
-                                            jsonOutput.Refresh();
-                                            return;
-                                        }
-
-                                    }
-
-                                    var csvVideoInfoModels = CsvUtilities.ToCsv(",", videoInfoModels);
-                                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(djiCsvLog);
-                                    var savedVideoSummary = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, $"{fileNameWithoutExtension}_resume.csv"), csvVideoInfoModels);
-                                    if (!savedVideoSummary)
-                                    {
-                                        saveMessageResult = MessageBox.Show($"cant save csv file {fileNameWithoutExtension}_resume.csv", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                        jsonOutput.Text = "";
-                                        jsonOutput.Refresh();
-                                        return;
-                                    }
-                                    saveMessageResult = MessageBox.Show($"files saved", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                }
-                            }
                         }
                     }
                     catch (IOException)
@@ -262,7 +234,7 @@ namespace UavLogConverter
             {
                 if (startTimetextBox.Text == "0" || string.IsNullOrEmpty(startTimetextBox.Text))
                 {
-                    _StartTimeSpan = TimeSpan.Zero;
+                    _startTimeSpan = TimeSpan.Zero;
                     startTimetextBox.Text = "00:00.00";
                     startTimetextBox.Refresh();
                     endTimetextBox.Enabled = true;
@@ -280,7 +252,7 @@ namespace UavLogConverter
                     }
                     else
                     {
-                        _StartTimeSpan = timeStamp;
+                        _startTimeSpan = timeStamp;
                         endTimetextBox.Enabled = true;
                         endTimetextBox.Focus();
                     }
@@ -335,7 +307,7 @@ namespace UavLogConverter
                                 return;
                             }
 
-                            var newUavlogs = Helpers.TrimUavLogs(sortUavList, _StartTimeSpan, _EndTimeSpan);
+                            var newUavlogs = Helpers.TrimUavLogs(sortUavList, _startTimeSpan, _EndTimeSpan);
                             var videoInfoModels = Helpers.GetVideoInfoModels(newUavlogs);
 
                             if (videoInfoModels != null)
@@ -399,76 +371,52 @@ namespace UavLogConverter
         {
             //https://stackoverflow.com/a/31764053
 
-            gMapControl1.DragButton = MouseButtons.Left;
+            gMapControl1 = GMapUtilities.ConfigureGoogleMap(ref gMapControl1);
 
-            gMapControl1.MapProvider = GMapProviders.GoogleMap;
-
-
-
-            //TODO worck with To points
-            //GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(-25.966688, 32.580528),
-            //  GMarkerGoogleType.green);
-            //markersOverlay.Markers.Add(marker);
-
-            //marker = new GMarkerGoogle(new PointLatLng(-43.966688, 11.580528),
-            // GMarkerGoogleType.green);
-            //markersOverlay.Markers.Add(marker);
-            //gMapControl1.Overlays.Add(markersOverlay);
-
-
-            //gMapControl1.ZoomAndCenterMarkers("markers");
-
-
-            //todo Zoom to marker not working
             //Clean the map
             gMapControl1.Overlays.Clear();
-            GMapOverlay markersOverlay = new GMapOverlay("markers");
 
             var newUavlog = GMapUtilities.FilterUavLogByDistance(uavLogs, 80);
 
-            var points = new List<PointLatLng>();
-            for (int index = 0; index < newUavlog.Count - 1; index++)
+            var points2 = GMapUtilities.GetPointLatlngsFromUavLogs(_uavLogDictionary);
+
+            var markers = new List<GMapOverlay>();
+            var routs = new List<GMapOverlay>();
+            GMapOverlay markersOverlay = new GMapOverlay("markers");
+            GMapOverlay uavTrack = new GMapOverlay($"Uav track");
+
+
+            int index = 0;
+            foreach (var item in points2)
             {
 
-                double lat = Convert.ToDouble(newUavlog[index].UavLatititud);
-                double lng = Convert.ToDouble(newUavlog[index].UavLongitud);
+                foreach (PointLatLng pointLatLng in item.Value)
+                {
+                    //Create a red marker
+                    GMarkerGoogle marker1 = new GMarkerGoogle(pointLatLng, GMapUtilities.GetColor(index));
 
-                PointLatLng pointLatLng = new PointLatLng(lat, lng);
-                points.Add(pointLatLng);
+                    //Add a marker on the overlay
+                    markersOverlay.Markers.Add(marker1);
+                }
+                markers.Add(markersOverlay);
+                var route = GMapUtilities.AddPointsLatLgnToRout(item.Value, index);
+                uavTrack.Routes.Add(route);
+                routs.Add(uavTrack);
 
-
-                //Create a red marker
-                GMarkerGoogle marker1 = new GMarkerGoogle(pointLatLng, GMarkerGoogleType.green);
-
-                //Add a marker on the overlay
-                markersOverlay.Markers.Add(marker1);
+                index++;
             }
 
 
-            var route = new GMapRoute(points, "sample route");
-
-            route.Stroke = new Pen(new Color());
-            route.Stroke.Color = Color.DarkRed;
-            route.Stroke.Width = 4;
-            route.Stroke.DashStyle = System.Drawing.Drawing2D.DashStyle.DashDot;
-            route.Stroke.StartCap = LineCap.NoAnchor;
-            route.Stroke.EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
-            route.Stroke.LineJoin = LineJoin.Round;
-
-            GMapOverlay uavTrack = new GMapOverlay("Uav track");
-
-            uavTrack.Routes.Add(route);
 
 
 
-            //Add the overlay on the gMapControl1(Map)
-            gMapControl1.Overlays.Add(uavTrack);
             gMapControl1.Overlays.Add(markersOverlay);
+            gMapControl1.Overlays.Add(uavTrack);
+
+
             gMapControl1.MinZoom = 5;
             gMapControl1.MaxZoom = 100;
-            //double zoomAtual = gMapControl1.Zoom;
-            //gMapControl1.Zoom = zoomAtual + 1;
-            //gMapControl1.Zoom = zoomAtual;
+
             gMapControl1.ZoomAndCenterMarkers("markers");
 
 
@@ -476,32 +424,54 @@ namespace UavLogConverter
         public void AddUavLogToMap(UavLog uavLog)
         {
             //https://stackoverflow.com/a/31764053
+            gMapControl1 = GMapUtilities.ConfigureGoogleMap(ref gMapControl1);
+            gMapControl1 = GMapUtilities.AddlatLngToGMapControl(ref gMapControl1, uavLog);
+            gMapControl1 = GMapUtilities.FixZoomToMarker(ref gMapControl1);
+        }
 
-            gMapControl1.DragButton = MouseButtons.Left;
-            gMapControl1.MapProvider = GMapProviders.GoogleMap;
+        private void SaveDjiCsv_Click(object sender, MouseEventArgs e)
+        {
+            DialogResult saveMessageResult = MessageBox.Show($"Do you wanna to save the Output files?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-            //Clean the map
-            gMapControl1.Overlays.Clear();
-            GMapOverlay markersOverlay = new GMapOverlay("markers");
+            if (saveMessageResult == DialogResult.Yes)
+            {
+                var videoInfoModels = Helpers.GetVideoInfoModels(_uavLogDictionary);
 
+                // Show the FolderBrowserDialog.
+                DialogResult folderBrowser = folderBrowserDialog1.ShowDialog();
+                if (folderBrowser == DialogResult.OK)
+                {
+                    string folderPath = folderBrowserDialog1.SelectedPath;
+                    foreach (var videologs in _uavLogDictionary)
+                    {
+                        var csvVideoLogs = CsvUtilities.ToCsv(",", videologs.Value);
 
-            double lat = Convert.ToDouble(uavLog.UavLatititud);
-            double lng = Convert.ToDouble(uavLog.UavLongitud);
-            PointLatLng pointLatLng = new PointLatLng(lat, lng);
+                        var filename = $"{videologs.Value.FirstOrDefault().DateTime.ToString("_yyyy-MM-dd_HH-mm-ss")}_{videologs.Key}.csv";
+                        var csvFileSaved = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, filename), csvVideoLogs);
+                        if (!csvFileSaved)
+                        {
+                            saveMessageResult = MessageBox.Show($"cant save csv file {filename}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            jsonOutput.Text = "";
+                            jsonOutput.Refresh();
+                            return;
+                        }
 
-            //Create a red marker
-            GMarkerGoogle marker1 = new GMarkerGoogle(pointLatLng, GMarkerGoogleType.green);
+                    }
 
-            //Add a marker on the overlay
-            markersOverlay.Markers.Add(marker1);
+                    var csvVideoInfoModels = CsvUtilities.ToCsv(",", videoInfoModels);
+                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(_fileName);
+                    var savedVideoSummary = CsvUtilities.SaveCsvTofile(Path.Combine(folderPath, $"{fileNameWithoutExtension}_resume.csv"), csvVideoInfoModels);
+                    if (!savedVideoSummary)
+                    {
+                        saveMessageResult = MessageBox.Show($"cant save csv file {fileNameWithoutExtension}_resume.csv", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        jsonOutput.Text = "";
+                        jsonOutput.Refresh();
+                        return;
+                    }
+                    saveMessageResult = MessageBox.Show($"files saved", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
 
-            //Add the overlay on the gMapControl1(Map)
-            gMapControl1.Overlays.Add(markersOverlay);
-            gMapControl1.MinZoom = 5;
-            gMapControl1.MaxZoom = 100;
-            double zoomAtual = gMapControl1.Zoom;
-            gMapControl1.Zoom = zoomAtual + 1;
-            gMapControl1.Zoom = zoomAtual;
         }
     }
 }
